@@ -249,6 +249,19 @@
     padding:4px 8px;
     border-radius:6px;
   }
+  .shift-row.logged{
+    background:rgba(127,216,88,0.08);
+    border-radius:6px;
+    padding:6px 6px 6px 8px;
+    margin:-6px -6px 0 -8px;
+  }
+  .shift-row.logged .log-time-btn{
+    border-color:#3A5A34;
+    color:#7FD858;
+  }
+    border-color:var(--amber);
+    color:var(--navy);
+  }
   .log-time-panel{
     background:var(--navy);
     border:1px solid var(--off-line);
@@ -1256,6 +1269,20 @@ function renderPersonView(){
   el.querySelectorAll('.log-time-btn').forEach(btn => {
     btn.onclick = () => toggleLogPanel(btn);
   });
+
+  applyLoggedStatus(el);
+}
+
+async function applyLoggedStatus(container){
+  const btns = [...container.querySelectorAll('.log-time-btn')];
+  for (const btn of btns){
+    const docId = btn.dataset.doc;
+    const existing = await fetchLoggedTime(docId);
+    if (existing){
+      btn.textContent = 'Edit';
+      btn.closest('.shift-row').classList.add('logged');
+    }
+  }
 }
 
 async function toggleLogPanel(btn){
@@ -1360,6 +1387,8 @@ async function toggleLogPanel(btn){
         loggedAt: new Date().toISOString()
       });
       loggedTimesCache[docId] = { actualStart, actualEnd };
+      btn.textContent = 'Edit';
+      btn.closest('.shift-row').classList.add('logged');
       statusEl.className = 'log-status ok';
       statusEl.textContent = 'Saved.';
     } catch(e) {
