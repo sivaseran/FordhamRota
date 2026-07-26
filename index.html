@@ -981,14 +981,24 @@ function getPersonChanges(person){
     const cur = DATA[person][idx];
     const defOff = !!def.off;
     const curOff = !!cur.off;
+    const defShifts = defOff ? [] : (def.shifts || []);
+    const curShifts = curOff ? [] : (cur.shifts || []);
 
-    if (!defOff && curOff){
+    if (curOff && !defOff){
+      // Whole day vacated
       changes.push({ key: `${person}-${idx}-off`, day: DAY_FULL[idx], text: `marked <b>day off</b> on ${DAY_FULL[idx]}` });
+    } else {
+      // Check for individually vacated shifts, even if still working other shifts that day
+      defShifts.forEach(ds => {
+        const stillThere = curShifts.some(cs => cs.start === ds.start && cs.end === ds.end && cs.tag === ds.tag);
+        if (!stillThere){
+          const label = ds.tag ? ds.tag : `${ds.start} – ${ds.end}`;
+          changes.push({ key: `${person}-${idx}-vacated-${ds.start}-${ds.end}-${ds.tag||''}`, day: DAY_FULL[idx], text: `no longer working <b>${label}</b> on ${DAY_FULL[idx]}` });
+        }
+      });
     }
 
     if (!curOff){
-      const defShifts = def.shifts || [];
-      const curShifts = cur.shifts || [];
       curShifts.forEach((s, si) => {
         const matchesDefault = defShifts.some(ds => ds.start === s.start && ds.end === s.end && ds.tag === s.tag);
         if (!matchesDefault){
@@ -1003,6 +1013,7 @@ function getPersonChanges(person){
 
 function renderChangeBanner(){
   const el = document.getElementById('changeBanner');
+  if (currentView !== 'person'){ el.classList.add('hidden'); return; }
   const changes = getPersonChanges(currentPerson);
 
   if (changes.length === 0){
@@ -1216,6 +1227,8 @@ function setView(view){
   document.getElementById('whoStrip').classList.toggle('hidden', view !== 'person' && view !== 'month');
   document.getElementById('heroBanner').classList.toggle('hidden', view !== 'person');
   document.getElementById('personView').classList.toggle('hidden', view !== 'person');
+  document.getElementById('changeBanner').classList.toggle('hidden', view !== 'person');
+  if (view === 'person') renderChangeBanner();
 
   document.getElementById('dayStrip').classList.toggle('hidden', view !== 'grid' && view !== 'timeline');
   document.getElementById('dayHero').classList.toggle('hidden', view !== 'grid');
