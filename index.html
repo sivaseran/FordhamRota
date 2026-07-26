@@ -239,6 +239,81 @@
   }
   .shift-row + .shift-row{border-top:1px dashed var(--off-line); margin-top:4px; padding-top:6px;}
   .shift-time{font-weight:700;}
+
+  .log-time-btn{
+    background:none;
+    border:1px solid var(--off-line);
+    color:var(--off);
+    font-size:10px;
+    font-weight:700;
+    padding:4px 8px;
+    border-radius:6px;
+  }
+  .log-time-panel{
+    background:var(--navy);
+    border:1px solid var(--off-line);
+    border-radius:8px;
+    padding:10px;
+    margin-top:6px;
+  }
+  .logged-note{
+    font-size:11px;
+    color:var(--green);
+    margin-bottom:8px;
+  }
+  .log-row{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .log-pin-input{
+    flex:0 0 60px;
+    background:var(--navy-2);
+    border:1px solid var(--off-line);
+    color:var(--cream);
+    padding:8px;
+    border-radius:6px;
+    font-size:13px;
+    text-align:center;
+  }
+  .log-unlock-btn{
+    flex:1;
+    background:var(--teal);
+    border:1px solid var(--amber-dim);
+    color:var(--amber);
+    font-weight:800;
+    font-size:12px;
+    border-radius:6px;
+  }
+  .log-fields.hidden{display:none;}
+  .log-start-input, .log-end-input{
+    flex:1;
+    background:var(--navy-2);
+    border:1px solid var(--off-line);
+    color:var(--cream);
+    padding:8px;
+    border-radius:6px;
+    font-size:13px;
+  }
+  .log-save-btn{
+    width:100%;
+    background:var(--amber);
+    color:var(--navy);
+    border:none;
+    padding:8px;
+    border-radius:6px;
+    font-weight:800;
+    font-size:12px;
+  }
+  .log-status{
+    font-size:11px;
+    text-align:center;
+    margin-top:6px;
+    min-height:14px;
+  }
+  .log-status.ok{color:var(--green);}
+  .log-status.err{color:var(--red, #E5556B);}
+
   .shift-tag{
     font-size:10px;
     text-transform:uppercase;
@@ -512,6 +587,59 @@
     font-style:italic;
     font-size:9px;
   }
+
+  #reportPeriodStrip{
+    display:flex;
+    gap:8px;
+  }
+  .report-period-btn{
+    flex:1;
+    padding:9px;
+    border-radius:10px;
+    border:1px solid var(--off-line);
+    background:var(--navy-2);
+    color:var(--off);
+    font-size:13px;
+    font-weight:700;
+  }
+  .report-period-btn.active{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:var(--navy);
+  }
+  .report-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  .report-table th, .report-table td{
+    border:1px solid var(--off-line);
+    padding:8px 6px;
+    text-align:center;
+  }
+  .report-table th{
+    background:var(--teal);
+    font-size:11px;
+    text-transform:uppercase;
+  }
+  .report-table td.name-cell{
+    background:var(--navy-2);
+    color:var(--amber);
+    font-weight:800;
+    text-align:left;
+    padding-left:10px;
+  }
+  .report-variance.pos{color:var(--green, #7FD858);}
+  .report-variance.neg{color:var(--red, #E5556B);}
+  #emailReportBtn{
+    background:var(--amber);
+    color:var(--navy);
+    border:none;
+    font-weight:800;
+    font-size:14px;
+    padding:12px;
+    border-radius:10px;
+  }
   .tl-axis{
     display:flex;
     justify-content:space-between;
@@ -668,7 +796,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDSLwIlHMB0Ej3kMePYtUJP97MTXvj3X5I",
@@ -1067,6 +1195,29 @@ function renderHero(){
   `;
 }
 
+function dateForDayIdx(idx){
+  const d = new Date(viewedWeekStart);
+  d.setDate(d.getDate() + idx);
+  return d;
+}
+
+function timesheetDocId(person, idx, shiftIdx){
+  return `${person}_${weekKey(dateForDayIdx(idx))}_${shiftIdx}`;
+}
+
+const loggedTimesCache = {}; // docId -> {actualStart, actualEnd}
+
+async function fetchLoggedTime(docId){
+  if (loggedTimesCache[docId] !== undefined) return loggedTimesCache[docId];
+  try {
+    const snap = await getDoc(doc(fbDb, 'timesheets', docId));
+    loggedTimesCache[docId] = snap.exists() ? snap.data() : null;
+  } catch(e) {
+    loggedTimesCache[docId] = null;
+  }
+  return loggedTimesCache[docId];
+}
+
 function renderPersonView(){
   const el = document.getElementById('personView');
   el.innerHTML = '';
@@ -1080,10 +1231,17 @@ function renderPersonView(){
     if (day.off){
       bodyHtml = `<div class="off-text">Day off</div>`;
     } else {
-      bodyHtml = day.shifts.map(s => {
+      bodyHtml = day.shifts.map((s, si) => {
         const timeLabel = s.start === "—" ? '' : `<span class="shift-time">${s.start} – ${s.end}</span>`;
         const tag = s.tag ? `<span class="shift-tag">${s.tag}</span>` : '';
-        return `<div class="shift-row"><span>${timeLabel}${tag}</span></div>`;
+        const docId = timesheetDocId(currentPerson, idx, si);
+        return `
+          <div class="shift-row">
+            <span>${timeLabel}${tag}</span>
+            <button class="log-time-btn" data-doc="${docId}" data-person="${currentPerson}" data-day="${idx}" data-shift="${si}" data-defstart="${s.start}" data-defend="${s.end}">Log time</button>
+          </div>
+          <div class="log-time-panel hidden" id="panel-${docId}"></div>
+        `;
       }).join('');
     }
 
@@ -1094,6 +1252,121 @@ function renderPersonView(){
     `;
     el.appendChild(card);
   });
+
+  el.querySelectorAll('.log-time-btn').forEach(btn => {
+    btn.onclick = () => toggleLogPanel(btn);
+  });
+}
+
+async function toggleLogPanel(btn){
+  const docId = btn.dataset.doc;
+  const panel = document.getElementById(`panel-${docId}`);
+  const isHidden = panel.classList.contains('hidden');
+
+  // Close any other open panels
+  document.querySelectorAll('.log-time-panel').forEach(p => p.classList.add('hidden'));
+
+  if (!isHidden) return; // was open, now closed — done
+
+  const defStart = btn.dataset.defstart === "—" ? "" : btn.dataset.defstart;
+  const defEnd = btn.dataset.defend === "—" ? "" : btn.dataset.defend;
+
+  // Nothing about a previous log is shown until the correct PIN is entered —
+  // this is private to whoever logged it, not visible to other staff browsing.
+  panel.innerHTML = `
+    <div class="log-row">
+      <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="log-pin-input" placeholder="Your PIN">
+      <button class="log-unlock-btn">Unlock</button>
+    </div>
+    <div class="log-fields hidden">
+      <div class="log-row">
+        <input type="time" class="log-start-input" value="${defStart}">
+        <input type="time" class="log-end-input" value="${defEnd}">
+      </div>
+      <button class="log-save-btn">Save</button>
+    </div>
+    <div class="log-status"></div>
+  `;
+  panel.classList.remove('hidden');
+
+  let verifiedPerson = null;
+
+  panel.querySelector('.log-unlock-btn').onclick = async () => {
+    const statusEl = panel.querySelector('.log-status');
+    const pin = panel.querySelector('.log-pin-input').value.trim();
+    const person = btn.dataset.person;
+
+    if (!/^\d{4}$/.test(pin)){
+      statusEl.className = 'log-status err';
+      statusEl.textContent = 'Enter your 4-digit PIN.';
+      return;
+    }
+
+    statusEl.className = 'log-status';
+    statusEl.textContent = 'Checking…';
+
+    try {
+      const pinSnap = await getDoc(doc(fbDb, 'staff_pins', 'all'));
+      const pins = pinSnap.exists() ? pinSnap.data() : {};
+      if (!pins[person] || pins[person] !== pin){
+        statusEl.className = 'log-status err';
+        statusEl.textContent = 'Incorrect PIN.';
+        return;
+      }
+
+      verifiedPerson = person;
+      // Only now — after the correct PIN — do we reveal any prior entry
+      const existing = await fetchLoggedTime(docId);
+      if (existing){
+        panel.querySelector('.log-start-input').value = existing.actualStart;
+        panel.querySelector('.log-end-input').value = existing.actualEnd;
+      }
+      panel.querySelector('.log-fields').classList.remove('hidden');
+      panel.querySelector('.log-row').style.display = 'none'; // hide PIN row once unlocked
+      statusEl.className = 'log-status ok';
+      statusEl.textContent = existing ? 'Unlocked — showing your logged time.' : 'Unlocked.';
+    } catch(e) {
+      statusEl.className = 'log-status err';
+      statusEl.textContent = 'Could not verify: ' + e.message;
+    }
+  };
+
+  panel.querySelector('.log-save-btn').onclick = async () => {
+    const statusEl = panel.querySelector('.log-status');
+    const actualStart = panel.querySelector('.log-start-input').value;
+    const actualEnd = panel.querySelector('.log-end-input').value;
+
+    if (!verifiedPerson){
+      statusEl.className = 'log-status err';
+      statusEl.textContent = 'Unlock with your PIN first.';
+      return;
+    }
+    if (!actualStart || !actualEnd){
+      statusEl.className = 'log-status err';
+      statusEl.textContent = 'Enter both start and end time.';
+      return;
+    }
+
+    statusEl.className = 'log-status';
+    statusEl.textContent = 'Saving…';
+
+    try {
+      const idx = parseInt(btn.dataset.day);
+      const dateStr = weekKey(dateForDayIdx(idx));
+      await setDoc(doc(fbDb, 'timesheets', docId), {
+        person: verifiedPerson, date: dateStr,
+        scheduledStart: btn.dataset.defstart, scheduledEnd: btn.dataset.defend,
+        actualStart, actualEnd,
+        loggedAt: new Date().toISOString()
+      });
+      loggedTimesCache[docId] = { actualStart, actualEnd };
+      statusEl.className = 'log-status ok';
+      statusEl.textContent = 'Saved.';
+    } catch(e) {
+      statusEl.className = 'log-status err';
+      statusEl.textContent = 'Save failed: ' + e.message;
+    }
+  };
 }
 
 function renderDayHero(){

@@ -80,6 +80,31 @@
     opacity:0.4;
     cursor:not-allowed;
   }
+  .report-period-btn.active{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:var(--navy);
+  }
+  .report-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+  }
+  .report-table th, .report-table td{
+    border:1px solid var(--off-line);
+    padding:6px 5px;
+    text-align:center;
+  }
+  .report-table th{
+    background:var(--teal);
+    font-size:10px;
+    text-transform:uppercase;
+  }
+  .report-table td.name-cell{
+    background:var(--navy-2);
+    color:var(--amber);
+    font-weight:800;
+  }
 
   .pending-cover{
     border:1px dashed var(--amber-dim);
@@ -242,6 +267,7 @@
   .total-preview b{color:var(--amber); font-size:16px;}
 </style>
 </head>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <body>
 
 <h1><span class="amber">Rota</span> Editor</h1>
@@ -292,13 +318,40 @@
   <button class="btn" id="saveBtn">Save changes</button>
   <div class="status" id="saveStatus"></div>
 
+  <div class="card">
+    <div style="font-size:13px; font-weight:800; color:var(--amber); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:10px;">Timesheet report</div>
+    <div class="sub" style="margin-bottom:12px;">Actual clocked-in time vs. scheduled, per person. Private to this editor — staff can't see each other's here.</div>
+
+    <div class="row" style="margin-bottom:10px;">
+      <button class="btn secondary report-period-btn active" data-period="week">This week</button>
+      <button class="btn secondary report-period-btn" data-period="month">This month</button>
+    </div>
+
+    <button class="btn secondary" id="loadReportBtn">Load report</button>
+    <div id="reportTableWrap" style="margin-top:12px;"></div>
+
+    <div class="row" style="margin-top:12px; gap:8px;">
+      <button class="btn secondary" id="downloadExcelBtn" style="display:none;">Download Excel</button>
+      <button class="btn secondary" id="emailReportBtn" style="display:none;">Email report</button>
+    </div>
+    <div class="status" id="reportStatus"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px; font-weight:800; color:var(--amber); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:10px;">Staff clock-in PINs</div>
+    <div class="sub" style="margin-bottom:12px;">Each person uses this PIN to log their actual start/end time on the main app. Not a full login — just enough to stop mix-ups between staff.</div>
+    <div id="pinFields"></div>
+    <button class="btn secondary" id="savePinsBtn" style="margin-top:8px;">Save PINs</button>
+    <div class="status" id="pinStatus"></div>
+  </div>
+
   <button class="btn secondary" id="logoutBtn" style="margin-top:24px;">Sign out</button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDSLwIlHMB0Ej3kMePYtUJP97MTXvj3X5I",
@@ -434,10 +487,12 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('editorArea').classList.remove('hidden');
     await loadDefaultData();
     await loadWeekData();
+    await loadPins();
     renderWeekLabel();
     renderWeekStatus();
     renderPersonStrip();
     renderDayStrip();
+    renderPinFields();
     loadDayIntoForm();
   } else {
     document.getElementById('loginCard').classList.remove('hidden');
@@ -446,6 +501,187 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ---------- LOAD ----------
+let staffPins = {}; // { Alex: "1234", ... }
+let reportPeriod = 'week';
+let currentReportRows = null; // cached last-loaded report data for export
+
+document.querySelectorAll('.report-period-btn').forEach(btn => {
+  btn.onclick = () => {
+    reportPeriod = btn.dataset.period;
+    document.querySelectorAll('.report-period-btn').forEach(b => b.classList.toggle('active', b === btn));
+  };
+});
+
+function toMinutesReport(hhmm){
+  if (!hhmm) return null;
+  const [h,m] = hhmm.split(':').map(Number);
+  return h*60+m;
+}
+
+async function loadReport(){
+  const statusEl = document.getElementById('reportStatus');
+  const wrap = document.getElementById('reportTableWrap');
+  statusEl.className = 'status';
+  statusEl.textContent = 'Loading…';
+  wrap.innerHTML = '';
+  document.getElementById('downloadExcelBtn').style.display = 'none';
+  document.getElementById('emailReportBtn').style.display = 'none';
+
+  let startDate, endDate, periodLabel;
+  if (reportPeriod === 'week'){
+    startDate = new Date(viewedWeekStart);
+    endDate = new Date(viewedWeekStart); endDate.setDate(endDate.getDate() + 6);
+    periodLabel = `${weekKey(startDate)} to ${weekKey(endDate)}`;
+  } else {
+    startDate = new Date(viewedWeekStart.getFullYear(), viewedWeekStart.getMonth(), 1);
+    endDate = new Date(viewedWeekStart.getFullYear(), viewedWeekStart.getMonth() + 1, 0);
+    periodLabel = `${weekKey(startDate)} to ${weekKey(endDate)}`;
+  }
+
+  const startStr = weekKey(startDate);
+  const endStr = weekKey(endDate);
+
+  try {
+    const q = query(collection(db, 'timesheets'), where('date', '>=', startStr), where('date', '<=', endStr));
+    const snap = await getDocs(q);
+
+    const rows = []; // one row per logged entry
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      const sm = toMinutesReport(d.actualStart), em = toMinutesReport(d.actualEnd);
+      const hours = (sm !== null && em !== null) ? Math.round(((em - sm) / 60) * 100) / 100 : null;
+      const schedM = toMinutesReport(d.scheduledStart), schedE = toMinutesReport(d.scheduledEnd);
+      const schedHours = (schedM !== null && schedE !== null) ? Math.round(((schedE - schedM) / 60) * 100) / 100 : null;
+      rows.push({
+        person: d.person, date: d.date,
+        scheduledStart: d.scheduledStart, scheduledEnd: d.scheduledEnd, scheduledHours: schedHours,
+        actualStart: d.actualStart, actualEnd: d.actualEnd, actualHours: hours
+      });
+    });
+
+    rows.sort((a,b) => a.date.localeCompare(b.date) || a.person.localeCompare(b.person));
+    currentReportRows = { rows, periodLabel };
+
+    if (rows.length === 0){
+      wrap.innerHTML = '<div class="sub" style="text-align:center;">No time logged for this period yet.</div>';
+      statusEl.className = 'status';
+      statusEl.textContent = '';
+      return;
+    }
+
+    let html = '<table class="report-table"><thead><tr><th>Person</th><th>Date</th><th>Scheduled</th><th>Actual</th><th>Hours</th></tr></thead><tbody>';
+    rows.forEach(r => {
+      html += `<tr>
+        <td class="name-cell">${r.person}</td>
+        <td>${r.date}</td>
+        <td>${r.scheduledStart || '—'}–${r.scheduledEnd || '—'}</td>
+        <td>${r.actualStart}–${r.actualEnd}</td>
+        <td>${r.actualHours !== null ? r.actualHours + 'h' : '—'}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+
+    document.getElementById('downloadExcelBtn').style.display = '';
+    document.getElementById('emailReportBtn').style.display = '';
+    statusEl.className = 'status ok';
+    statusEl.textContent = `Loaded ${rows.length} logged entr${rows.length === 1 ? 'y' : 'ies'}.`;
+  } catch(e) {
+    statusEl.className = 'status err';
+    statusEl.textContent = 'Could not load report: ' + e.message;
+  }
+}
+
+document.getElementById('loadReportBtn').onclick = loadReport;
+
+document.getElementById('downloadExcelBtn').onclick = () => {
+  if (!currentReportRows || typeof XLSX === 'undefined') return;
+  const data = currentReportRows.rows.map(r => ({
+    Person: r.person,
+    Date: r.date,
+    'Scheduled Start': r.scheduledStart || '',
+    'Scheduled End': r.scheduledEnd || '',
+    'Scheduled Hours': r.scheduledHours ?? '',
+    'Actual Start': r.actualStart,
+    'Actual End': r.actualEnd,
+    'Actual Hours': r.actualHours ?? ''
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Timesheet');
+  XLSX.writeFile(wb, `Fordham-timesheet-${currentReportRows.periodLabel.replace(/\s+/g,'_')}.xlsx`);
+};
+
+document.getElementById('emailReportBtn').onclick = () => {
+  if (!currentReportRows) return;
+  const lines = currentReportRows.rows.map(r =>
+    `${r.person} | ${r.date} | Scheduled ${r.scheduledStart || '—'}-${r.scheduledEnd || '—'} | Actual ${r.actualStart}-${r.actualEnd} | ${r.actualHours ?? '—'}h`
+  );
+  const subject = encodeURIComponent(`Fordham timesheet — ${currentReportRows.periodLabel}`);
+  const body = encodeURIComponent(`Timesheet report for ${currentReportRows.periodLabel}\n\n${lines.join('\n')}`);
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+};
+
+
+
+async function loadPins(){
+  try {
+    const snap = await getDoc(doc(db, 'staff_pins', 'all'));
+    if (snap.exists()){
+      staffPins = snap.data() || {};
+    }
+  } catch(e) {
+    console.warn('Could not load PINs', e);
+  }
+}
+
+function renderPinFields(){
+  const el = document.getElementById('pinFields');
+  el.innerHTML = '';
+  STAFF.forEach(name => {
+    const row = document.createElement('div');
+    row.style.marginBottom = '10px';
+    row.innerHTML = `
+      <label>${name}'s PIN</label>
+      <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="pin-input" data-name="${name}" value="${staffPins[name] || ''}" placeholder="4 digits">
+    `;
+    el.appendChild(row);
+  });
+}
+
+document.getElementById('savePinsBtn').onclick = async () => {
+  const statusEl = document.getElementById('pinStatus');
+  const inputs = document.querySelectorAll('.pin-input');
+  const newPins = {};
+  let valid = true;
+
+  inputs.forEach(inp => {
+    const val = inp.value.trim();
+    if (val && !/^\d{4}$/.test(val)){
+      valid = false;
+    }
+    if (val) newPins[inp.dataset.name] = val;
+  });
+
+  if (!valid){
+    statusEl.className = 'status err';
+    statusEl.textContent = 'PINs must be exactly 4 digits.';
+    return;
+  }
+
+  statusEl.className = 'status';
+  statusEl.textContent = 'Saving…';
+  try {
+    await setDoc(doc(db, 'staff_pins', 'all'), newPins);
+    staffPins = newPins;
+    statusEl.className = 'status ok';
+    statusEl.textContent = 'PINs saved.';
+  } catch(e) {
+    statusEl.className = 'status err';
+    statusEl.textContent = 'Save failed: ' + e.message;
+  }
+};
+
 async function loadDefaultData(){
   try {
     const snap = await getDoc(doc(db, 'rota', 'shifts'));
