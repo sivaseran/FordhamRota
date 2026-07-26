@@ -176,6 +176,27 @@
   .status.err{color:var(--red);}
 
   .hidden{display:none !important;}
+
+  .week-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .week-label-text{
+    font-size:14px;
+    font-weight:800;
+    color:var(--cream);
+    text-align:center;
+    flex:1;
+  }
+  .week-status{
+    text-align:center;
+    font-size:12px;
+    margin-bottom:12px;
+  }
+  .week-status.custom{color:var(--amber); font-weight:700;}
+  .week-status.default{color:var(--off); font-style:italic;}
   .total-preview{
     text-align:right;
     font-size:13px;
@@ -202,6 +223,14 @@
 
 <!-- EDITOR (hidden until logged in) -->
 <div id="editorArea" class="hidden">
+
+  <div class="week-nav" id="weekNav">
+    <button class="strip-btn" id="weekPrev">‹</button>
+    <div id="weekLabel" class="week-label-text"></div>
+    <button class="strip-btn" id="weekNext">›</button>
+  </div>
+  <div id="weekStatus" class="week-status"></div>
+  <button class="btn danger" id="clearWeekBtn" style="margin-bottom:14px;">Clear custom changes for this week</button>
 
   <div class="strip" id="personStrip"></div>
   <div class="strip" id="dayStrip"></div>
@@ -246,9 +275,9 @@ const db = getFirestore(app);
 const STAFF = ["Alex","Regi","Jude","Seran","Uday"];
 const DAYS = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 
-// Fallback seed data — matches the main app's default. Used only if
-// Firestore has no document yet (first-ever save creates it for real).
-let DATA = {
+// Fallback seed data — matches the main app's recurring pattern. Used as
+// the starting point for any week that doesn't have its own override yet.
+let DEFAULT_DATA = {
   Alex: [
     {shifts:[{start:"05:30",end:"13:00"},{start:"14:00",end:"17:00"}], total:10.5},
     {shifts:[{start:"05:30",end:"14:00"},{start:"17:00",end:"22:00"}], total:13.5},
@@ -296,8 +325,50 @@ let DATA = {
   ]
 };
 
+let DATA = DEFAULT_DATA;
 let currentPerson = STAFF[0];
 let currentDayIdx = 0;
+let isCustomWeek = false; // does the currently viewed week have its own override doc?
+
+function mondayOf(date){
+  const d = new Date(date);
+  const jsDay = d.getDay();
+  const diff = jsDay === 0 ? -6 : 1 - jsDay;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+let viewedWeekStart = mondayOf(new Date());
+const SHORT_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function weekKey(date){
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const d = String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
+function renderWeekLabel(){
+  const start = viewedWeekStart;
+  const end = new Date(start); end.setDate(start.getDate() + 6);
+  const isThisWeek = mondayOf(new Date()).getTime() === start.getTime();
+  const label = `${start.getDate()} ${SHORT_MONTHS[start.getMonth()]} – ${end.getDate()} ${SHORT_MONTHS[end.getMonth()]}`;
+  document.getElementById('weekLabel').textContent = isThisWeek ? `This week · ${label}` : label;
+}
+
+function renderWeekStatus(){
+  const el = document.getElementById('weekStatus');
+  const clearBtn = document.getElementById('clearWeekBtn');
+  if (isCustomWeek){
+    el.className = 'week-status custom';
+    el.textContent = 'This week has custom changes';
+    clearBtn.classList.remove('hidden');
+  } else {
+    el.className = 'week-status default';
+    el.textContent = 'Showing the default recurring pattern';
+    clearBtn.classList.add('hidden');
+  }
+}
 
 // ---------- LOGIN ----------
 document.getElementById('loginBtn').onclick = async () => {
@@ -320,7 +391,10 @@ onAuthStateChanged(auth, async (user) => {
   if (user){
     document.getElementById('loginCard').classList.add('hidden');
     document.getElementById('editorArea').classList.remove('hidden');
-    await loadRemoteData();
+    await loadDefaultData();
+    await loadWeekData();
+    renderWeekLabel();
+    renderWeekStatus();
     renderPersonStrip();
     renderDayStrip();
     loadDayIntoForm();
@@ -331,16 +405,62 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ---------- LOAD ----------
-async function loadRemoteData(){
+async function loadDefaultData(){
   try {
     const snap = await getDoc(doc(db, 'rota', 'shifts'));
     if (snap.exists() && snap.data().json){
-      DATA = JSON.parse(snap.data().json);
+      DEFAULT_DATA = JSON.parse(snap.data().json);
     }
   } catch(e) {
-    console.warn('Could not load remote data, using local seed', e);
+    console.warn('Could not load default rota data, using local seed', e);
   }
 }
+
+async function loadWeekData(){
+  const key = weekKey(viewedWeekStart);
+  try {
+    const snap = await getDoc(doc(db, 'rota', `week_${key}`));
+    if (snap.exists() && snap.data().json){
+      DATA = JSON.parse(snap.data().json);
+      isCustomWeek = true;
+      return;
+    }
+  } catch(e) {
+    console.warn('Could not load week override', e);
+  }
+  // No override for this week — start from a fresh copy of the default pattern
+  DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  isCustomWeek = false;
+}
+
+async function refreshWeek(){
+  await loadWeekData();
+  renderWeekLabel();
+  renderWeekStatus();
+  loadDayIntoForm();
+}
+
+document.getElementById('weekPrev').onclick = async () => {
+  viewedWeekStart = new Date(viewedWeekStart); viewedWeekStart.setDate(viewedWeekStart.getDate() - 7);
+  await refreshWeek();
+};
+document.getElementById('weekNext').onclick = async () => {
+  viewedWeekStart = new Date(viewedWeekStart); viewedWeekStart.setDate(viewedWeekStart.getDate() + 7);
+  await refreshWeek();
+};
+document.getElementById('clearWeekBtn').onclick = async () => {
+  const key = weekKey(viewedWeekStart);
+  const statusEl = document.getElementById('saveStatus');
+  try {
+    await setDoc(doc(db, 'rota', `week_${key}`), { json: null, cleared: true });
+    statusEl.className = 'status ok';
+    statusEl.textContent = 'Custom changes cleared for this week.';
+    await refreshWeek();
+  } catch(e) {
+    statusEl.className = 'status err';
+    statusEl.textContent = 'Could not clear: ' + e.message;
+  }
+};
 
 // ---------- STRIPS ----------
 function renderPersonStrip(){
@@ -494,10 +614,13 @@ document.getElementById('saveBtn').onclick = async () => {
     ? { off: true, total: 0 }
     : { shifts: formShifts.map(s => ({...s})), total };
 
+  const key = weekKey(viewedWeekStart);
   try {
-    await setDoc(doc(db, 'rota', 'shifts'), { json: JSON.stringify(DATA) });
+    await setDoc(doc(db, 'rota', `week_${key}`), { json: JSON.stringify(DATA) });
+    isCustomWeek = true;
+    renderWeekStatus();
     statusEl.className = 'status ok';
-    statusEl.textContent = 'Saved — all phones will update.';
+    statusEl.textContent = 'Saved — this week will update on all phones.';
   } catch(e) {
     statusEl.className = 'status err';
     statusEl.textContent = 'Save failed: ' + e.message;

@@ -660,7 +660,7 @@ const DAYS = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 const DAY_FULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
 // data[person][dayIndex] = { shifts:[{start,end,tag}], total, off:true/false }
-let DATA = {
+let DEFAULT_DATA = {
   Alex: [
     {shifts:[{start:"05:30",end:"13:00"},{start:"14:00",end:"17:00"}], total:10.5},
     {shifts:[{start:"05:30",end:"14:00"},{start:"17:00",end:"22:00"}], total:13.5},
@@ -708,6 +708,10 @@ let DATA = {
   ]
 };
 
+// DATA is whatever is currently on screen — the default recurring pattern,
+// unless the viewed week has its own saved override.
+let DATA = DEFAULT_DATA;
+
 function computeDayTotals(){
   return DAYS.map((_, idx) => STAFF.reduce((sum, name) => sum + DATA[name][idx].total, 0));
 }
@@ -731,6 +735,13 @@ function mondayOf(date){
 let viewedWeekStart = mondayOf(new Date());
 const SHORT_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
+function weekKey(date){
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const d = String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
 function renderWeekLabel(){
   const start = viewedWeekStart;
   const end = new Date(start); end.setDate(start.getDate() + 6);
@@ -740,13 +751,31 @@ function renderWeekLabel(){
   document.getElementById('weekLabel').innerHTML = isThisWeek ? `<b>This week</b> · ${label}` : label;
 }
 
-document.getElementById('weekPrev').onclick = () => {
+async function applyWeekData(){
+  if (!firebaseReady){ DATA = DEFAULT_DATA; refreshCurrentView(); return; }
+  try {
+    const snap = await getDoc(doc(fbDb, 'rota', `week_${weekKey(viewedWeekStart)}`));
+    if (snap.exists() && snap.data().json){
+      DATA = JSON.parse(snap.data().json);
+    } else {
+      DATA = DEFAULT_DATA;
+    }
+  } catch(e) {
+    console.warn('Could not load week override, showing default pattern', e);
+    DATA = DEFAULT_DATA;
+  }
+  refreshCurrentView();
+}
+
+document.getElementById('weekPrev').onclick = async () => {
   viewedWeekStart = new Date(viewedWeekStart); viewedWeekStart.setDate(viewedWeekStart.getDate() - 7);
   renderWeekLabel();
+  await applyWeekData();
 };
-document.getElementById('weekNext').onclick = () => {
+document.getElementById('weekNext').onclick = async () => {
   viewedWeekStart = new Date(viewedWeekStart); viewedWeekStart.setDate(viewedWeekStart.getDate() + 7);
   renderWeekLabel();
+  await applyWeekData();
 };
 
 let currentPerson = STAFF[0];
@@ -1119,6 +1148,7 @@ document.querySelectorAll('.switch-btn').forEach(btn => {
 renderAll();
 renderWeekLabel();
 setView('timeline');
+applyWeekData();
 
 const WEEKDAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const _today = new Date();
@@ -1149,9 +1179,9 @@ if (firebaseReady){
       if (snap.exists() && snap.data().json){
         try {
           const remote = JSON.parse(snap.data().json);
-          DATA = remote;
+          DEFAULT_DATA = remote;
           setSyncStatus('synced');
-          refreshCurrentView();
+          applyWeekData();
         } catch(parseErr){
           console.warn('Failed to parse remote rota data', parseErr);
         }
