@@ -145,6 +145,36 @@
     background:linear-gradient(135deg, #1B2E1A, var(--navy-2));
     border-color:#3A5A34;
   }
+  .change-banner{
+    margin:16px 16px 6px;
+    background:linear-gradient(135deg, #3A2E12, var(--navy-2));
+    border:1px solid var(--amber-dim);
+    border-radius:14px;
+    padding:12px 14px;
+  }
+  .change-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    font-size:13px;
+    padding:4px 0;
+  }
+  .change-item + .change-item{
+    border-top:1px dashed var(--off-line);
+    margin-top:6px;
+    padding-top:8px;
+  }
+  .change-item .change-text{color:var(--cream);}
+  .change-item .change-text b{color:var(--amber);}
+  .change-item .close-btn{
+    background:none;
+    border:none;
+    color:var(--off);
+    font-size:16px;
+    line-height:1;
+    padding:0 2px;
+  }
   .now-hero .eyebrow{color:#7FD858;}
   .now-list{display:flex; flex-direction:column; gap:8px; margin-top:4px;}
   .now-row{
@@ -612,6 +642,8 @@
 
 <div id="nowBanner" class="hero now-hero"></div>
 
+<div id="changeBanner" class="change-banner hidden"></div>
+
 <div id="heroBanner" class="hero"></div>
 
 <div id="dayHero" class="hero hidden"></div>
@@ -877,7 +909,7 @@ function renderWhoStrip(){
     const btn = document.createElement('button');
     btn.className = 'who-btn' + (name === currentPerson ? ' active' : '');
     btn.textContent = name;
-    btn.onclick = () => { currentPerson = name; try { localStorage.setItem('rota_person', name); } catch(e) {} renderAll(); if (currentView === 'month') renderMonthView(); };
+    btn.onclick = () => { currentPerson = name; try { localStorage.setItem('rota_person', name); } catch(e) {} renderAll(); renderChangeBanner(); if (currentView === 'month') renderMonthView(); };
     el.appendChild(btn);
   });
 }
@@ -938,6 +970,61 @@ function renderNowBanner(){
     <div class="eyebrow">Working right now</div>
     <div class="now-list">${rows}</div>
   `;
+}
+
+const dismissedChanges = new Set(); // session-only; resets on reload
+
+function getPersonChanges(person){
+  const changes = [];
+  DAYS.forEach((d, idx) => {
+    const def = DEFAULT_DATA[person][idx];
+    const cur = DATA[person][idx];
+    const defOff = !!def.off;
+    const curOff = !!cur.off;
+
+    if (!defOff && curOff){
+      changes.push({ key: `${person}-${idx}-off`, day: DAY_FULL[idx], text: `marked <b>day off</b> on ${DAY_FULL[idx]}` });
+    }
+
+    if (!curOff){
+      const defShifts = def.shifts || [];
+      const curShifts = cur.shifts || [];
+      curShifts.forEach((s, si) => {
+        const matchesDefault = defShifts.some(ds => ds.start === s.start && ds.end === s.end && ds.tag === s.tag);
+        if (!matchesDefault){
+          const label = s.tag ? s.tag : `${s.start} – ${s.end}`;
+          changes.push({ key: `${person}-${idx}-cover-${si}-${s.start}-${s.end}-${s.tag||''}`, day: DAY_FULL[idx], text: `covering a shift on ${DAY_FULL[idx]}, <b>${label}</b>` });
+        }
+      });
+    }
+  });
+  return changes.filter(c => !dismissedChanges.has(c.key));
+}
+
+function renderChangeBanner(){
+  const el = document.getElementById('changeBanner');
+  const changes = getPersonChanges(currentPerson);
+
+  if (changes.length === 0){
+    el.classList.add('hidden');
+    el.innerHTML = '';
+    return;
+  }
+
+  el.classList.remove('hidden');
+  el.innerHTML = changes.map(c => `
+    <div class="change-item">
+      <span class="change-text">${currentPerson} is ${c.text}</span>
+      <button class="close-btn" data-key="${c.key}">✕</button>
+    </div>
+  `).join('');
+
+  el.querySelectorAll('.close-btn').forEach(btn => {
+    btn.onclick = () => {
+      dismissedChanges.add(btn.dataset.key);
+      renderChangeBanner();
+    };
+  });
 }
 
 function renderHero(){
@@ -1109,6 +1196,7 @@ document.getElementById('monthNext').onclick = () => {
 function renderAll(){
   renderWhoStrip();
   renderNowBanner();
+  renderChangeBanner();
   renderHero();
   renderPersonView();
   renderDayStrip();

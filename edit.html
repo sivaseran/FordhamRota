@@ -80,6 +80,28 @@
     opacity:0.4;
     cursor:not-allowed;
   }
+
+  .pending-cover{
+    border:1px dashed var(--amber-dim);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
+    background:rgba(245,166,35,0.06);
+  }
+  .pending-cover .vacated-label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--cream);
+    margin-bottom:8px;
+  }
+  .pending-cover .skip-btn{
+    background:none;
+    border:none;
+    color:var(--off);
+    font-size:11px;
+    text-decoration:underline;
+    margin-top:8px;
+  }
   .btn.danger{
     background:none;
     border:1px solid var(--red);
@@ -252,45 +274,9 @@
     <div class="total-preview">Total for this day <b id="dayTotalPreview">0h</b></div>
   </div>
 
-  <div id="coverCard" class="card hidden">
-    <div class="off-toggle">
-      <span>Needs cover?</span>
-      <div class="switch" id="coverSwitch"><div class="knob"></div></div>
-    </div>
-    <div id="coverDetails" class="hidden">
-      <label>Who's covering</label>
-      <div class="strip" id="coverPersonStrip"></div>
-
-      <div class="row">
-        <div>
-          <label>Start</label>
-          <input type="time" id="coverStart">
-        </div>
-        <div>
-          <label>End</label>
-          <input type="time" id="coverEnd">
-        </div>
-      </div>
-      <div class="sub" style="margin-top:8px;">This adds a shift to the covering person's day — any shifts they already have that day stay in place.</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="off-toggle">
-      <span>Add delivery</span>
-      <div class="switch" id="deliverySwitch"><div class="knob"></div></div>
-    </div>
-    <div id="deliveryDetails" class="hidden">
-      <label>Who's doing it</label>
-      <div class="strip" id="deliveryPersonStrip"></div>
-      <div id="deliveryNoOneMsg" class="sub hidden">Nobody else is working this day yet — mark them working first, or use the shift form above.</div>
-
-      <label>Delivery hours</label>
-      <input type="number" min="0" step="0.5" id="deliveryHours" value="4">
-
-      <button class="btn secondary" id="addDeliveryBtn" style="margin-top:12px;">Add delivery</button>
-      <div class="status" id="deliveryStatus"></div>
-    </div>
+  <div id="pendingCoversCard" class="card hidden">
+    <div style="font-size:13px; font-weight:800; color:var(--amber); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:10px;">Reassign vacated shifts</div>
+    <div id="pendingCoversContainer"></div>
   </div>
 
   <button class="btn" id="saveBtn">Save changes</button>
@@ -535,25 +521,16 @@ function renderDayStrip(){
 // ---------- FORM ----------
 let formShifts = [];
 let formOff = false;
-let originalShiftsSnapshot = []; // the shift(s) that existed before toggling Day off, for pre-filling cover
-let coverEnabled = false;
-let coverPerson = null;
-let deliveryEnabled = false;
-let deliveryPerson = null;
+let pendingCovers = []; // shifts vacated from this person, awaiting reassignment: { shift, coverPerson }
 
 function loadDayIntoForm(){
   const day = DATA[currentPerson][currentDayIdx];
   formOff = !!day.off;
   formShifts = day.shifts ? day.shifts.map(s => ({...s})) : [];
-  originalShiftsSnapshot = formShifts.map(s => ({...s}));
-  coverEnabled = false;
-  coverPerson = null;
-  deliveryEnabled = false;
-  deliveryPerson = null;
+  pendingCovers = [];
   renderOffSwitch();
   renderShiftsForm();
-  renderCoverCard();
-  renderDeliveryCard();
+  renderPendingCovers();
   updateTotalPreview();
 }
 
@@ -562,104 +539,58 @@ function renderOffSwitch(){
   sw.classList.toggle('on', formOff);
   document.getElementById('shiftsContainer').classList.toggle('hidden', formOff);
   document.getElementById('addShiftBtn').classList.toggle('hidden', formOff);
-  document.getElementById('coverCard').classList.toggle('hidden', !formOff);
 }
 
 document.getElementById('offSwitch').onclick = () => {
   formOff = !formOff;
+  if (formOff && formShifts.length){
+    // Marking the whole day off — offer to reassign every shift that was there
+    formShifts.forEach(s => pendingCovers.push({ shift: {...s}, coverPerson: null }));
+    formShifts = [];
+    renderShiftsForm();
+    renderPendingCovers();
+  }
   renderOffSwitch();
   updateTotalPreview();
 };
 
-function renderCoverCard(){
-  document.getElementById('coverSwitch').classList.toggle('on', coverEnabled);
-  document.getElementById('coverDetails').classList.toggle('hidden', !coverEnabled);
-
-  const strip = document.getElementById('coverPersonStrip');
-  strip.innerHTML = '';
-  STAFF.filter(name => name !== currentPerson).forEach(name => {
-    const btn = document.createElement('button');
-    btn.className = 'strip-btn' + (name === coverPerson ? ' active' : '');
-    btn.textContent = name;
-    btn.onclick = () => { coverPerson = name; renderCoverCard(); };
-    strip.appendChild(btn);
-  });
-
-  // Pre-fill from the original shift being vacated, if there was one
-  const firstOriginal = originalShiftsSnapshot.find(s => s.start && s.start !== "—");
-  if (firstOriginal){
-    document.getElementById('coverStart').value = firstOriginal.start;
-    document.getElementById('coverEnd').value = firstOriginal.end;
-  }
+function shiftLabel(shift){
+  return shift.tag ? shift.tag : `${shift.start} – ${shift.end}`;
 }
 
-document.getElementById('coverSwitch').onclick = () => {
-  coverEnabled = !coverEnabled;
-  renderCoverCard();
-};
+function renderPendingCovers(){
+  const card = document.getElementById('pendingCoversCard');
+  const container = document.getElementById('pendingCoversContainer');
+  card.classList.toggle('hidden', pendingCovers.length === 0);
+  container.innerHTML = '';
 
-function renderDeliveryCard(){
-  document.getElementById('deliverySwitch').classList.toggle('on', deliveryEnabled);
-  document.getElementById('deliveryDetails').classList.toggle('hidden', !deliveryEnabled);
-  if (!deliveryEnabled) return;
+  pendingCovers.forEach((pc, i) => {
+    const block = document.createElement('div');
+    block.className = 'pending-cover';
+    block.innerHTML = `
+      <div class="vacated-label">Vacated: ${shiftLabel(pc.shift)}</div>
+      <label>Who's covering</label>
+      <div class="strip" id="pendingStrip${i}"></div>
+      <button class="skip-btn" data-i="${i}">Don't cover this one</button>
+    `;
+    container.appendChild(block);
 
-  const strip = document.getElementById('deliveryPersonStrip');
-  strip.innerHTML = '';
+    const strip = block.querySelector(`#pendingStrip${i}`);
+    STAFF.filter(name => name !== currentPerson).forEach(name => {
+      const isOff = DATA[name][currentDayIdx].off;
+      const btn = document.createElement('button');
+      btn.className = 'strip-btn' + (name === pc.coverPerson ? ' active' : '');
+      btn.textContent = isOff ? `${name} (off)` : name;
+      btn.onclick = () => { pendingCovers[i].coverPerson = name; renderPendingCovers(); };
+      strip.appendChild(btn);
+    });
 
-  // Anyone can be picked, including staff currently off that day — excluding
-  // only the person being edited above, to avoid conflicting pending changes.
-  const eligible = STAFF.filter(name => name !== currentPerson);
-
-  document.getElementById('deliveryNoOneMsg').classList.add('hidden');
-  document.getElementById('addDeliveryBtn').disabled = eligible.length === 0;
-
-  eligible.forEach(name => {
-    const isOff = DATA[name][currentDayIdx].off;
-    const btn = document.createElement('button');
-    btn.className = 'strip-btn' + (name === deliveryPerson ? ' active' : '');
-    btn.textContent = isOff ? `${name} (off)` : name;
-    btn.onclick = () => { deliveryPerson = name; renderDeliveryCard(); };
-    strip.appendChild(btn);
+    block.querySelector('.skip-btn').onclick = () => {
+      pendingCovers.splice(i, 1);
+      renderPendingCovers();
+    };
   });
 }
-
-document.getElementById('deliverySwitch').onclick = () => {
-  deliveryEnabled = !deliveryEnabled;
-  renderDeliveryCard();
-};
-
-document.getElementById('addDeliveryBtn').onclick = () => {
-  const statusEl = document.getElementById('deliveryStatus');
-  const hours = parseFloat(document.getElementById('deliveryHours').value) || 0;
-
-  if (!deliveryPerson){
-    statusEl.className = 'status err';
-    statusEl.textContent = 'Pick who is doing the delivery first.';
-    return;
-  }
-  if (hours <= 0){
-    statusEl.className = 'status err';
-    statusEl.textContent = 'Enter how many hours.';
-    return;
-  }
-
-  const day = DATA[deliveryPerson][currentDayIdx];
-  const existingShifts = (day.off || !day.shifts) ? [] : day.shifts.map(s => ({...s}));
-  existingShifts.push({start:"—", end:"—", tag:`Delivery (${hours}h)`});
-
-  const newTotal = existingShifts.reduce((sum, s) => {
-    if (s.tag){ return sum + (parseFloat(s.tag.match(/[\d.]+/)?.[0]) || 0); }
-    const sm = toMinutes(s.start), em = toMinutes(s.end);
-    return sum + (sm !== null && em !== null ? (em - sm) / 60 : 0);
-  }, 0);
-
-  DATA[deliveryPerson][currentDayIdx] = { shifts: existingShifts, total: Math.round(newTotal * 100) / 100 };
-
-  statusEl.className = 'status ok';
-  statusEl.textContent = `Added ${hours}h delivery for ${deliveryPerson}. Click "Save changes" below to publish.`;
-  deliveryPerson = null;
-  renderDeliveryCard();
-};
 
 function renderShiftsForm(){
   const container = document.getElementById('shiftsContainer');
@@ -671,7 +602,7 @@ function renderShiftsForm(){
     block.className = 'shift-block';
 
     block.innerHTML = `
-      <button class="remove-btn" data-i="${i}">Remove</button>
+      <button class="remove-btn" data-i="${i}">Vacate</button>
       <div class="type-toggle">
         <button class="type-timed ${!isDelivery ? 'active' : ''}" data-i="${i}">Timed</button>
         <button class="type-delivery ${isDelivery ? 'active' : ''}" data-i="${i}">Delivery</button>
@@ -697,7 +628,14 @@ function renderShiftsForm(){
   });
 
   container.querySelectorAll('.remove-btn').forEach(b => {
-    b.onclick = () => { formShifts.splice(+b.dataset.i, 1); renderShiftsForm(); updateTotalPreview(); };
+    b.onclick = () => {
+      const i = +b.dataset.i;
+      pendingCovers.push({ shift: {...formShifts[i]}, coverPerson: null });
+      formShifts.splice(i, 1);
+      renderShiftsForm();
+      renderPendingCovers();
+      updateTotalPreview();
+    };
   });
   container.querySelectorAll('.type-timed').forEach(b => {
     b.onclick = () => { const i = +b.dataset.i; formShifts[i] = {start:"08:00", end:"17:00"}; renderShiftsForm(); updateTotalPreview(); };
@@ -752,6 +690,18 @@ function updateTotalPreview(){
 }
 
 // ---------- SAVE ----------
+function addShiftToPerson(person, dayIdx, shift){
+  const day = DATA[person][dayIdx];
+  const existingShifts = (day.off || !day.shifts) ? [] : day.shifts.map(s => ({...s}));
+  existingShifts.push({...shift});
+  const newTotal = existingShifts.reduce((sum, s) => {
+    if (s.tag){ return sum + (parseFloat(s.tag.match(/[\d.]+/)?.[0]) || 0); }
+    const sm = toMinutes(s.start), em = toMinutes(s.end);
+    return sum + (sm !== null && em !== null ? (em - sm) / 60 : 0);
+  }, 0);
+  DATA[person][dayIdx] = { shifts: existingShifts, total: Math.round(newTotal * 100) / 100 };
+}
+
 document.getElementById('saveBtn').onclick = async () => {
   const statusEl = document.getElementById('saveStatus');
   statusEl.className = 'status';
@@ -762,24 +712,13 @@ document.getElementById('saveBtn').onclick = async () => {
     ? { off: true, total: 0 }
     : { shifts: formShifts.map(s => ({...s})), total };
 
-  // Apply cover shift, if enabled
-  if (formOff && coverEnabled && coverPerson){
-    const start = document.getElementById('coverStart').value;
-    const end = document.getElementById('coverEnd').value;
-    if (start && end){
-      const coverDay = DATA[coverPerson][currentDayIdx];
-      const existingShifts = (coverDay.off || !coverDay.shifts) ? [] : coverDay.shifts.map(s => ({...s}));
-      existingShifts.push({start, end});
-      const startMin = toMinutes(start), endMin = toMinutes(end);
-      const addedHours = (endMin - startMin) / 60;
-      const newTotal = existingShifts.reduce((sum, s) => {
-        if (s.tag){ return sum + (parseFloat(s.tag.match(/[\d.]+/)?.[0]) || 0); }
-        const sm = toMinutes(s.start), em = toMinutes(s.end);
-        return sum + (sm !== null && em !== null ? (em - sm) / 60 : 0);
-      }, 0);
-      DATA[coverPerson][currentDayIdx] = { shifts: existingShifts, total: Math.round(newTotal * 100) / 100 };
+  let coveredCount = 0;
+  pendingCovers.forEach(pc => {
+    if (pc.coverPerson){
+      addShiftToPerson(pc.coverPerson, currentDayIdx, pc.shift);
+      coveredCount++;
     }
-  }
+  });
 
   const key = weekKey(viewedWeekStart);
   try {
@@ -787,8 +726,8 @@ document.getElementById('saveBtn').onclick = async () => {
     isCustomWeek = true;
     renderWeekStatus();
     statusEl.className = 'status ok';
-    statusEl.textContent = (formOff && coverEnabled && coverPerson)
-      ? `Saved — ${coverPerson} is now covering this shift.`
+    statusEl.textContent = coveredCount > 0
+      ? `Saved — ${coveredCount} shift${coveredCount > 1 ? 's' : ''} reassigned.`
       : 'Saved — this week will update on all phones.';
   } catch(e) {
     statusEl.className = 'status err';
