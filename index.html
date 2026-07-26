@@ -34,6 +34,7 @@
     background:var(--navy);
     color:var(--cream);
     font-family:'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+    padding-top:env(safe-area-inset-top, 0px);
     padding-bottom:40px;
     min-height:100vh;
   }
@@ -1281,14 +1282,14 @@ if (firebaseReady){
         try {
           const remote = JSON.parse(snap.data().json);
           DEFAULT_DATA = remote;
-          setSyncStatus('synced');
           applyWeekData();
         } catch(parseErr){
           console.warn('Failed to parse remote rota data', parseErr);
         }
-      } else {
-        setSyncStatus('offline');
       }
+      // A successful callback means the connection is live, whether or not
+      // a default-pattern override document has been created yet.
+      setSyncStatus('synced');
     }, (err) => {
       console.warn('Firestore listener error', err);
       setSyncStatus('offline');
