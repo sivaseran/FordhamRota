@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Fordham Service Station Rota</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fordham Service Station">
+<meta name="theme-color" content="#0F1B2D">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F1B2D'/><text x='50' y='64' font-size='54' text-anchor='middle' fill='%23F5A623' font-family='Arial' font-weight='900'>R</text></svg>">
+<link rel="manifest" href="data:application/manifest+json,{
+  %22name%22: %22Forecourt Rota%22,
+  %22short_name%22: %22Rota%22,
+  %22start_url%22: %22.%22,
+  %22display%22: %22standalone%22,
+  %22background_color%22: %22%230F1B2D%22,
+  %22theme_color%22: %22%230F1B2D%22
+}">
+<style>
+  :root{
+    --navy:#0F1B2D;
+    --navy-2:#16263D;
+    --teal:#1F3A3D;
+    --amber:#F5A623;
+    --amber-dim:#C6821A;
+    --cream:#F7F5F0;
+    --off:#8AA0AE;
+    --off-line:#28394D;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; height:100%;}
+  body{
+    background:var(--navy);
+    color:var(--cream);
+    font-family:'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+    padding-bottom:40px;
+    min-height:100vh;
+  }
+  .topbar{
+    padding:14px 20px 10px;
+    display:flex;
+    align-items:baseline;
+    justify-content:center;
+    border-bottom:1px solid var(--off-line);
+  }
+  .topbar h1{
+    font-size:19px;
+    font-weight:800;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    margin:0;
+  }
+  .today-date{
+    font-size:14px;
+    color:var(--off);
+    font-weight:700;
+  }
+  .sync-status{
+    font-size:10px;
+    color:var(--off);
+    margin-left:8px;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+  }
+  .sync-status .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--off);
+    display:inline-block;
+  }
+  .sync-status.synced .dot{background:#7FD858;}
+  .sync-status.synced{color:#7FD858;}
+  .topbar .amber{color:var(--amber);}
+  .topbar .week{font-size:12px; color:var(--off);}
+
+  .who-strip{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:14px 16px;
+    border-bottom:1px solid var(--off-line);
+  }
+  .who-strip::-webkit-scrollbar{display:none;}
+  .who-btn{
+    flex:0 0 auto;
+    padding:9px 16px;
+    border-radius:100px;
+    border:1px solid var(--off-line);
+    background:var(--navy-2);
+    color:var(--off);
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.02em;
+  }
+  .who-btn.active{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:var(--navy);
+  }
+  .who-btn.all{font-style:italic;}
+
+  .hero{
+    margin:16px 16px 6px;
+    background:linear-gradient(135deg, var(--teal), var(--navy-2));
+    border:1px solid var(--off-line);
+    border-radius:14px;
+    padding:18px 18px 16px;
+  }
+  .hero .eyebrow{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--amber);
+    font-weight:800;
+    margin-bottom:6px;
+  }
+  .hero .big{
+    font-size:26px;
+    font-weight:800;
+    line-height:1.15;
+  }
+  .hero .sub{
+    font-size:13px;
+    color:var(--off);
+    margin-top:4px;
+  }
+  .hero .weektotal{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid var(--off-line);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+    color:var(--off);
+  }
+  .hero .weektotal b{
+    color:var(--cream);
+    font-size:20px;
+    font-weight:800;
+  }
+
+  .now-hero{
+    background:linear-gradient(135deg, #1B2E1A, var(--navy-2));
+    border-color:#3A5A34;
+  }
+  .now-hero .eyebrow{color:#7FD858;}
+  .now-list{display:flex; flex-direction:column; gap:8px; margin-top:4px;}
+  .now-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:14px;
+  }
+  .now-row .dot{
+    width:8px; height:8px; border-radius:50%;
+    background:#7FD858;
+    display:inline-block;
+    margin-right:8px;
+  }
+  .shift-row .dot{
+    width:8px; height:8px; border-radius:50%;
+    background:#7FD858;
+    display:inline-block;
+    margin-right:6px;
+  }
+  .now-row .until{color:var(--off); font-size:13px;}
+  .now-empty{font-size:14px; color:var(--off); font-style:italic;}
+
+  .day-list{padding:6px 16px 10px;}
+  .day-card{
+    display:flex;
+    align-items:stretch;
+    background:var(--navy-2);
+    border:1px solid var(--off-line);
+    border-radius:12px;
+    margin-bottom:8px;
+    overflow:hidden;
+  }
+  .day-card.off{opacity:0.45;}
+  .day-card.today{border-color:var(--amber);}
+  .day-label{
+    width:56px;
+    flex:0 0 56px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:var(--teal);
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--cream);
+  }
+  .day-card.today .day-label{background:var(--amber); color:var(--navy);}
+  .day-body{
+    flex:1;
+    padding:10px 14px;
+  }
+  .shift-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:14px;
+    padding:3px 0;
+  }
+  .shift-row + .shift-row{border-top:1px dashed var(--off-line); margin-top:4px; padding-top:6px;}
+  .shift-time{font-weight:700;}
+  .shift-tag{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--amber);
+    font-weight:800;
+    margin-left:6px;
+  }
+  .off-text{font-size:13px; color:var(--off); font-style:italic;}
+  .day-total{
+    flex:0 0 52px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    font-weight:800;
+    color:var(--off);
+    border-left:1px solid var(--off-line);
+  }
+  .day-card.today .day-total{color:var(--amber);}
+
+  .grid-wrap{
+    padding:12px 12px 20px;
+    overflow-x:auto;
+  }
+  table{
+    border-collapse:collapse;
+    width:100%;
+    min-width:0;
+    table-layout:fixed;
+    font-size:12.5px;
+  }
+  th,td{
+    border:1px solid var(--off-line);
+    padding:10px 6px;
+    text-align:center;
+    vertical-align:middle;
+    background:var(--navy-2);
+    color:var(--cream);
+    font-weight:700;
+    line-height:1.45;
+    overflow-wrap:break-word;
+    hyphens:auto;
+  }
+  th{
+    background:var(--teal);
+    text-transform:uppercase;
+    font-size:11px;
+    letter-spacing:0.05em;
+    color:var(--cream);
+  }
+  td.name-cell{
+    background:var(--teal);
+    font-weight:800;
+    color:var(--amber);
+    position:sticky;
+    left:0;
+    z-index:1;
+  }
+  th:first-child{
+    position:sticky;
+    left:0;
+    z-index:2;
+  }
+  td.off-cell{background:#0A1420; color:var(--off); font-weight:400;}
+  td.total-cell{font-weight:800; background:var(--teal); color:var(--amber);}
+  .grid-total-row td{background:#0A1420; font-weight:800; color:var(--cream);}
+  .grid-total-row td.name-cell{background:#0A1420; color:var(--cream);}
+  td b.tag-label{
+    color:var(--amber);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    display:block;
+  }
+
+  .scroll-hint{
+    text-align:center;
+    font-size:11px;
+    color:var(--off);
+    padding:8px 0 0;
+  }
+
+  .footer-toggle{
+    text-align:center;
+    padding:10px;
+  }
+  .footer-toggle button{
+    background:none;
+    border:1px solid var(--off-line);
+    color:var(--off);
+    padding:8px 16px;
+    border-radius:100px;
+    font-size:12px;
+    font-weight:700;
+  }
+  .hidden{display:none !important;}
+
+  .day-strip{
+    display:flex;
+    gap:4px;
+    padding:10px 8px;
+    border-bottom:1px solid var(--off-line);
+  }
+  .day-btn{
+    flex:1;
+    padding:8px 2px;
+    border-radius:8px;
+    border:1px solid var(--off-line);
+    background:var(--navy-2);
+    color:var(--off);
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:0.01em;
+  }
+  .day-btn.active{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:var(--navy);
+  }
+  .day-btn.is-today::after{
+    content:" •";
+  }
+
+  .view-switch{
+    display:flex;
+    gap:8px;
+    margin:14px 16px 4px;
+  }
+  .switch-btn{
+    flex:1;
+    background:var(--navy-2);
+    border:1px solid var(--off-line);
+    color:var(--off);
+    font-size:13px;
+    font-weight:700;
+    padding:11px 6px;
+    border-radius:10px;
+  }
+  .switch-btn.active{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:var(--navy);
+  }
+
+  .timeline-wrap{padding:18px 16px 10px;}
+
+  .month-wrap{padding:14px 16px 20px;}
+  .month-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:4px 0 10px;
+  }
+  .month-nav-btn{
+    background:var(--navy-2);
+    border:1px solid var(--off-line);
+    color:var(--cream);
+    width:36px;
+    height:36px;
+    border-radius:8px;
+    font-size:18px;
+    font-weight:800;
+  }
+  .month-label{
+    font-size:16px;
+    font-weight:800;
+    letter-spacing:0.02em;
+  }
+  .week-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 16px 4px;
+    border-bottom:1px solid var(--off-line);
+  }
+  .week-nav-btn{
+    background:var(--navy-2);
+    border:1px solid var(--off-line);
+    color:var(--cream);
+    width:30px;
+    height:30px;
+    flex:0 0 30px;
+    border-radius:8px;
+    font-size:16px;
+    font-weight:800;
+  }
+  .week-label{
+    flex:1;
+    font-size:13px;
+    font-weight:700;
+    color:var(--off);
+    text-align:center;
+  }
+  .week-label b{color:var(--amber);}
+
+  .month-note{
+    font-size:11px;
+    color:var(--off);
+    text-align:center;
+    margin-bottom:8px;
+    font-style:italic;
+  }
+  .month-total{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    background:var(--teal);
+    border:1px solid var(--off-line);
+    border-radius:10px;
+    padding:10px 14px;
+    margin-bottom:12px;
+    font-size:13px;
+    color:var(--off);
+  }
+  .month-total b{
+    color:var(--amber);
+    font-size:20px;
+    font-weight:800;
+  }
+  .month-grid{
+    display:grid;
+    grid-template-columns:repeat(7, 1fr);
+    gap:5px;
+  }
+  .month-weekday{
+    text-align:center;
+    font-size:10px;
+    font-weight:800;
+    color:var(--off);
+    text-transform:uppercase;
+    padding-bottom:4px;
+  }
+  .month-cell{
+    aspect-ratio:1;
+    border:1px solid var(--off-line);
+    border-radius:8px;
+    background:var(--navy-2);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:4px 2px;
+  }
+  .month-cell.empty{
+    border-color:transparent;
+    background:none;
+  }
+  .month-cell.off-day{
+    background:#0A1420;
+  }
+  .month-cell.is-today{
+    border-color:var(--amber);
+    border-width:2px;
+  }
+  .month-date{
+    font-size:12px;
+    font-weight:700;
+    color:var(--off);
+  }
+  .month-cell.working .month-date{color:var(--cream);}
+  .month-hours{
+    font-size:11px;
+    font-weight:800;
+    color:var(--amber);
+    margin-top:2px;
+  }
+  .month-cell.off-day .month-hours{
+    color:var(--off);
+    font-weight:400;
+    font-style:italic;
+    font-size:9px;
+  }
+  .tl-axis{
+    display:flex;
+    justify-content:space-between;
+    font-size:10px;
+    color:var(--off);
+    padding:0 2px 8px;
+    margin-left:64px;
+  }
+  .tl-row{margin-bottom:14px;}
+  .tl-row-top{
+    display:flex;
+    align-items:center;
+  }
+  .tl-label{
+    width:64px;
+    flex:0 0 64px;
+    font-size:13px;
+    font-weight:800;
+    color:var(--amber);
+  }
+  .tl-track{
+    position:relative;
+    flex:1;
+    height:26px;
+    background:var(--navy-2);
+    border:1px solid var(--off-line);
+    border-radius:6px;
+  }
+  .tl-bar{
+    position:absolute;
+    top:2px;
+    bottom:2px;
+    background:var(--amber);
+    border-radius:4px;
+  }
+  .tl-bar.tl-active{
+    background:#7FD858;
+  }
+  .tl-now-line{
+    position:absolute;
+    top:-3px;
+    bottom:-3px;
+    width:2px;
+    background:#7FD858;
+    z-index:2;
+  }
+  .tl-caption{
+    font-size:11px;
+    color:var(--off);
+    margin:5px 0 0 68px;
+  }
+  .tl-off-row{
+    display:flex;
+    align-items:center;
+  }
+  .tl-off-track{
+    flex:1;
+    height:26px;
+    border:1px solid var(--off-line);
+    border-radius:6px;
+    background:repeating-linear-gradient(
+      45deg,
+      #0A1420,
+      #0A1420 8px,
+      #16263D 8px,
+      #16263D 16px
+    );
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .tl-off-track span{
+    font-size:11px;
+    color:var(--off);
+    font-style:italic;
+    background:var(--navy);
+    padding:0 8px;
+    border-radius:4px;
+  }
+  .tl-off-track.tl-delivery-only{
+    background:var(--navy-2);
+    background-image:none;
+  }
+  .tl-delivery-chip{
+    position:absolute;
+    top:2px;
+    bottom:2px;
+    background:rgba(245,166,35,0.14);
+    border:1px dashed var(--amber-dim);
+    border-radius:4px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:9.5px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    color:var(--amber);
+    padding:0 2px;
+    overflow:hidden;
+    white-space:nowrap;
+    z-index:1;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar">
+  <div id="todayDate" class="today-date"></div>
+  <div id="syncStatus" class="sync-status"></div>
+</div>
+
+<div class="week-nav">
+  <button id="weekPrev" class="week-nav-btn">‹</button>
+  <div id="weekLabel" class="week-label"></div>
+  <button id="weekNext" class="week-nav-btn">›</button>
+</div>
+
+<div class="view-switch">
+  <button class="switch-btn" data-view="person">Staff</button>
+  <button class="switch-btn" data-view="grid">Day</button>
+  <button class="switch-btn active" data-view="timeline">Timeline</button>
+  <button class="switch-btn" data-view="month">Month</button>
+</div>
+
+<div class="who-strip" id="whoStrip"></div>
+
+<div class="day-strip hidden" id="dayStrip"></div>
+
+<div id="nowBanner" class="hero now-hero"></div>
+
+<div id="heroBanner" class="hero"></div>
+
+<div id="dayHero" class="hero hidden"></div>
+
+<div id="personView" class="day-list"></div>
+
+<div id="staffDayView" class="day-list hidden"></div>
+
+<div id="timelineView" class="timeline-wrap hidden"></div>
+
+<div id="monthView" class="month-wrap hidden">
+  <div class="month-nav">
+    <button id="monthPrev" class="month-nav-btn">‹</button>
+    <div id="monthLabel" class="month-label"></div>
+    <button id="monthNext" class="month-nav-btn">›</button>
+  </div>
+  <div class="month-note">Same weekly pattern repeats each week</div>
+  <div id="monthTotal" class="month-total"></div>
+  <div id="monthGrid" class="month-grid"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDSLwIlHMB0Ej3kMePYtUJP97MTXvj3X5I",
+  authDomain: "fordhamrota.firebaseapp.com",
+  projectId: "fordhamrota",
+  storageBucket: "fordhamrota.firebasestorage.app",
+  messagingSenderId: "441480189702",
+  appId: "1:441480189702:web:8c0124f191e5776c19b087"
+};
+
+let firebaseReady = false;
+let fbApp, fbDb;
+try {
+  fbApp = initializeApp(firebaseConfig);
+  fbDb = getFirestore(fbApp);
+  firebaseReady = true;
+} catch(e) {
+  console.warn('Firebase init failed, using local data only', e);
+}
+const STAFF = ["Alex","Regi","Jude","Seran","Uday"];
+const DAYS = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+const DAY_FULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
+// data[person][dayIndex] = { shifts:[{start,end,tag}], total, off:true/false }
+let DATA = {
+  Alex: [
+    {shifts:[{start:"05:30",end:"13:00"},{start:"14:00",end:"17:00"}], total:10.5},
+    {shifts:[{start:"05:30",end:"14:00"},{start:"17:00",end:"22:00"}], total:13.5},
+    {off:true, total:0},
+    {shifts:[{start:"05:30",end:"14:00"}], total:8.5},
+    {shifts:[{start:"05:30",end:"13:00"},{start:"15:00",end:"21:00"}], total:13.5},
+    {shifts:[{start:"05:30",end:"14:00"}], total:8.5},
+    {shifts:[{start:"05:30",end:"13:00"}], total:7.5}
+  ],
+  Regi: [
+    {shifts:[{start:"13:00",end:"21:00"}], total:8},
+    {shifts:[{start:"14:00",end:"21:00"}], total:7},
+    {shifts:[{start:"05:30",end:"13:00"}], total:7.5},
+    {off:true, total:0},
+    {shifts:[{start:"07:00",end:"13:30"}], total:6.5},
+    {off:true, total:0},
+    {off:true, total:0}
+  ],
+  Jude: [
+    {shifts:[{start:"08:00",end:"13:00"},{start:"17:00",end:"22:00"}], total:10},
+    {off:true, total:0},
+    {shifts:[{start:"13:00",end:"21:00"}], total:8},
+    {shifts:[{start:"—",end:"—",tag:"Delivery (4h)"},{start:"17:00",end:"22:00"}], total:9},
+    {shifts:[{start:"13:00",end:"22:00"}], total:9},
+    {shifts:[{start:"14:00",end:"21:00"}], total:7},
+    {shifts:[{start:"09:00",end:"14:00"},{start:"16:00",end:"22:00"}], total:11}
+  ],
+  Seran: [
+    {shifts:[{start:"—",end:"—",tag:"Delivery (5h)"}], total:5},
+    {shifts:[{start:"08:00",end:"17:00"}], total:9},
+    {off:true, total:0},
+    {shifts:[{start:"08:00",end:"17:00"}], total:9},
+    {off:true, total:0},
+    {off:true, total:0},
+    {off:true, total:0}
+  ],
+  Uday: [
+    {off:true, total:0},
+    {off:true, total:0},
+    {shifts:[{start:"08:00",end:"22:00"}], total:14},
+    {shifts:[{start:"14:00",end:"21:00"}], total:7},
+    {off:true, total:0},
+    {shifts:[{start:"08:00",end:"22:00"}], total:14},
+    {shifts:[{start:"14:00",end:"20:00"}], total:6}
+  ]
+};
+
+function computeDayTotals(){
+  return DAYS.map((_, idx) => STAFF.reduce((sum, name) => sum + DATA[name][idx].total, 0));
+}
+
+// find "today" mapped to Mon-Sun index (0=Mon ... 6=Sun), based on device date
+function todayIndex(){
+  const d = new Date().getDay(); // 0=Sun
+  return d === 0 ? 6 : d - 1;
+}
+const TODAY = todayIndex();
+
+function mondayOf(date){
+  const d = new Date(date);
+  const jsDay = d.getDay();
+  const diff = jsDay === 0 ? -6 : 1 - jsDay;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+let viewedWeekStart = mondayOf(new Date());
+const SHORT_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function renderWeekLabel(){
+  const start = viewedWeekStart;
+  const end = new Date(start); end.setDate(start.getDate() + 6);
+  const isThisWeek = mondayOf(new Date()).getTime() === start.getTime();
+
+  const label = `${start.getDate()} ${SHORT_MONTHS[start.getMonth()]} – ${end.getDate()} ${SHORT_MONTHS[end.getMonth()]}`;
+  document.getElementById('weekLabel').innerHTML = isThisWeek ? `<b>This week</b> · ${label}` : label;
+}
+
+document.getElementById('weekPrev').onclick = () => {
+  viewedWeekStart = new Date(viewedWeekStart); viewedWeekStart.setDate(viewedWeekStart.getDate() - 7);
+  renderWeekLabel();
+};
+document.getElementById('weekNext').onclick = () => {
+  viewedWeekStart = new Date(viewedWeekStart); viewedWeekStart.setDate(viewedWeekStart.getDate() + 7);
+  renderWeekLabel();
+};
+
+let currentPerson = STAFF[0];
+try {
+  const stored = localStorage.getItem('rota_person');
+  if (stored && STAFF.includes(stored)) currentPerson = stored;
+} catch(e) { /* localStorage unavailable in this context — fall back silently */ }
+let currentView = 'timeline'; // 'person' | 'grid' | 'timeline' | 'month'
+let currentDay = TODAY;
+
+const _now = new Date();
+let viewedMonth = _now.getMonth();
+let viewedYear = _now.getFullYear();
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+const WIN_START = 5 * 60;   // 05:00
+const WIN_END = 22 * 60;    // 22:00
+const WIN_RANGE = WIN_END - WIN_START;
+
+function renderDayStrip(){
+  const el = document.getElementById('dayStrip');
+  el.innerHTML = '';
+  DAYS.forEach((d, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'day-btn' + (idx === currentDay ? ' active' : '') + (idx === TODAY ? ' is-today' : '');
+    btn.textContent = d;
+    btn.onclick = () => { currentDay = idx; renderDayHero(); renderStaffDayView(); renderTimelineView(); renderDayStrip(); };
+    el.appendChild(btn);
+  });
+}
+
+function renderTimelineView(){
+  const el = document.getElementById('timelineView');
+  const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+  const isToday = currentDay === TODAY;
+
+  let html = '<div class="tl-axis"><span>05:00</span><span>09:00</span><span>13:00</span><span>17:00</span><span>22:00</span></div>';
+
+  STAFF.forEach(name => {
+    const day = DATA[name][currentDay];
+    if (day.off){
+      html += `
+        <div class="tl-row">
+          <div class="tl-off-row">
+            <div class="tl-label">${name}</div>
+            <div class="tl-off-track"><span>Day off</span></div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const timedShifts = day.shifts.filter(s => s.start !== "—");
+    const untimedShifts = day.shifts.filter(s => s.start === "—");
+
+    let barsHtml = '';
+    timedShifts.forEach(s => {
+      const startMin = toMinutes(s.start);
+      const endMin = toMinutes(s.end);
+      const leftPct = Math.max(0, (startMin - WIN_START) / WIN_RANGE * 100);
+      const widthPct = Math.min(100 - leftPct, (endMin - startMin) / WIN_RANGE * 100);
+      const active = isToday && nowMin >= startMin && nowMin < endMin;
+      barsHtml += `<div class="tl-bar${active ? ' tl-active' : ''}" style="left:${leftPct}%; width:${widthPct}%;"></div>`;
+    });
+
+    // Delivery-style shifts have no fixed time, so they're always anchored
+    // at the start of the track as a labeled chip — consistent whether or
+    // not there's also a timed shift that day.
+    let deliveryChipsHtml = '';
+    untimedShifts.forEach((s, i) => {
+      const chipWidthPct = Math.min(32, 100 / (timedShifts.length ? 3 : 1));
+      deliveryChipsHtml += `<div class="tl-delivery-chip" style="left:${i * (chipWidthPct + 1)}%; width:${chipWidthPct}%;">${s.tag}</div>`;
+    });
+
+    let nowLineHtml = '';
+    if (isToday && nowMin >= WIN_START && nowMin <= WIN_END){
+      const nowPct = (nowMin - WIN_START) / WIN_RANGE * 100;
+      nowLineHtml = `<div class="tl-now-line" style="left:${nowPct}%;"></div>`;
+    }
+
+    const captionParts = timedShifts.map(s => `${s.start}–${s.end}`);
+
+    html += `
+      <div class="tl-row">
+        <div class="tl-row-top">
+          <div class="tl-label">${name}</div>
+          <div class="tl-track">${deliveryChipsHtml}${barsHtml}${nowLineHtml}</div>
+        </div>
+        <div class="tl-caption">${captionParts.join(' &nbsp;+&nbsp; ')}</div>
+      </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function renderWhoStrip(){
+  const el = document.getElementById('whoStrip');
+  el.innerHTML = '';
+  STAFF.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'who-btn' + (name === currentPerson ? ' active' : '');
+    btn.textContent = name;
+    btn.onclick = () => { currentPerson = name; try { localStorage.setItem('rota_person', name); } catch(e) {} renderAll(); if (currentView === 'month') renderMonthView(); };
+    el.appendChild(btn);
+  });
+}
+
+function findNextShift(person){
+  const days = DATA[person];
+  for (let offset = 1; offset <= 7; offset++){
+    const idx = (TODAY + offset) % 7;
+    const day = days[idx];
+    if (!day.off && day.shifts && day.shifts.length){
+      return { dayIdx: idx, day, isToday: false };
+    }
+  }
+  return null;
+}
+
+function toMinutes(hhmm){
+  if (hhmm === "—") return null;
+  const [h,m] = hhmm.split(':').map(Number);
+  return h*60+m;
+}
+
+function renderNowBanner(){
+  const el = document.getElementById('nowBanner');
+  const now = new Date();
+  const nowMin = now.getHours()*60 + now.getMinutes();
+
+  const onNow = [];
+  STAFF.forEach(name => {
+    const day = DATA[name][TODAY];
+    if (day.off || !day.shifts) return;
+    day.shifts.forEach(s => {
+      const start = toMinutes(s.start);
+      const end = toMinutes(s.end);
+      if (start === null || end === null) return; // skip untimed (e.g. delivery) shifts
+      if (nowMin >= start && nowMin < end){
+        onNow.push({ name, until: s.end });
+      }
+    });
+  });
+
+  if (onNow.length === 0){
+    el.innerHTML = `
+      <div class="eyebrow">Working right now</div>
+      <div class="now-empty">Nobody currently on shift</div>
+    `;
+    return;
+  }
+
+  const rows = onNow.map(p => `
+    <div class="now-row">
+      <span><span class="dot"></span>${p.name}</span>
+      <span class="until">till ${p.until}</span>
+    </div>
+  `).join('');
+
+  el.innerHTML = `
+    <div class="eyebrow">Working right now</div>
+    <div class="now-list">${rows}</div>
+  `;
+}
+
+function renderHero(){
+  const hero = document.getElementById('heroBanner');
+  const weekTotal = DATA[currentPerson].reduce((s,d)=>s+d.total,0);
+  const next = findNextShift(currentPerson);
+
+  let bigText, subText;
+  if (!next){
+    bigText = "No shifts this week";
+    subText = "Enjoy the time off";
+  } else {
+    const shift = next.day.shifts[0];
+    const label = next.isToday ? "Today" : DAY_FULL[next.dayIdx];
+    const timeStr = shift.tag ? shift.tag : `${shift.start} – ${shift.end}`;
+    bigText = `${label}, ${timeStr}`;
+    subText = next.day.shifts.length > 1 ? `+ ${next.day.shifts.length - 1} more shift on this day` : "Next shift";
+  }
+
+  hero.innerHTML = `
+    <div class="eyebrow">${currentPerson}'s next shift</div>
+    <div class="big">${bigText}</div>
+    <div class="sub">${subText}</div>
+    <div class="weektotal">
+      <span>Total this week</span>
+      <b>${weekTotal}h</b>
+    </div>
+  `;
+}
+
+function renderPersonView(){
+  const el = document.getElementById('personView');
+  el.innerHTML = '';
+  const days = DATA[currentPerson];
+
+  days.forEach((day, idx) => {
+    const card = document.createElement('div');
+    card.className = 'day-card' + (day.off ? ' off' : '') + (idx === TODAY ? ' today' : '');
+
+    let bodyHtml = '';
+    if (day.off){
+      bodyHtml = `<div class="off-text">Day off</div>`;
+    } else {
+      bodyHtml = day.shifts.map(s => {
+        const timeLabel = s.start === "—" ? '' : `<span class="shift-time">${s.start} – ${s.end}</span>`;
+        const tag = s.tag ? `<span class="shift-tag">${s.tag}</span>` : '';
+        return `<div class="shift-row"><span>${timeLabel}${tag}</span></div>`;
+      }).join('');
+    }
+
+    card.innerHTML = `
+      <div class="day-label">${DAYS[idx]}</div>
+      <div class="day-body">${bodyHtml}</div>
+      <div class="day-total">${day.off ? '–' : day.total + 'h'}</div>
+    `;
+    el.appendChild(card);
+  });
+}
+
+function renderDayHero(){
+  const el = document.getElementById('dayHero');
+  const dayTotal = STAFF.reduce((sum, name) => sum + DATA[name][currentDay].total, 0);
+  const workingCount = STAFF.filter(name => !DATA[name][currentDay].off).length;
+
+  el.innerHTML = `
+    <div class="eyebrow">${DAY_FULL[currentDay]}</div>
+    <div class="big">${workingCount} of ${STAFF.length} staff working</div>
+    <div class="sub">${dayTotal}h scheduled across the team</div>
+  `;
+}
+
+function renderStaffDayView(){
+  const el = document.getElementById('staffDayView');
+  el.innerHTML = '';
+  const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+  const isToday = currentDay === TODAY;
+
+  STAFF.forEach(name => {
+    const day = DATA[name][currentDay];
+    const card = document.createElement('div');
+    card.className = 'day-card' + (day.off ? ' off' : '');
+
+    let bodyHtml = '';
+    if (day.off){
+      bodyHtml = `<div class="off-text">Day off</div>`;
+    } else {
+      bodyHtml = day.shifts.map(s => {
+        const timeLabel = s.start === "—" ? '' : `<span class="shift-time">${s.start} – ${s.end}</span>`;
+        const tag = s.tag ? `<span class="shift-tag">${s.tag}</span>` : '';
+        const active = isToday && s.start !== "—" && nowMin >= toMinutes(s.start) && nowMin < toMinutes(s.end);
+        return `<div class="shift-row">${active ? '<span class="dot"></span>' : ''}<span>${timeLabel}${tag}</span></div>`;
+      }).join('');
+    }
+
+    card.innerHTML = `
+      <div class="day-label">${name}</div>
+      <div class="day-body">${bodyHtml}</div>
+      <div class="day-total">${day.off ? '–' : day.total + 'h'}</div>
+    `;
+    el.appendChild(card);
+  });
+}
+
+function renderMonthView(){
+  document.getElementById('monthLabel').textContent = `${MONTH_NAMES[viewedMonth]} ${viewedYear}`;
+
+  const grid = document.getElementById('monthGrid');
+  grid.innerHTML = '';
+
+  ["MON","TUE","WED","THU","FRI","SAT","SUN"].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'month-weekday';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstOfMonth = new Date(viewedYear, viewedMonth, 1);
+  const daysInMonth = new Date(viewedYear, viewedMonth + 1, 0).getDate();
+  const firstJsDay = firstOfMonth.getDay(); // 0=Sun
+  const leadingBlanks = firstJsDay === 0 ? 6 : firstJsDay - 1; // Mon-first offset
+
+  for (let i = 0; i < leadingBlanks; i++){
+    const blank = document.createElement('div');
+    blank.className = 'month-cell empty';
+    grid.appendChild(blank);
+  }
+
+  const today = new Date();
+  const isCurrentMonth = today.getMonth() === viewedMonth && today.getFullYear() === viewedYear;
+
+  let monthTotal = 0;
+  let workingDays = 0;
+
+  for (let date = 1; date <= daysInMonth; date++){
+    const cellDate = new Date(viewedYear, viewedMonth, date);
+    const jsDay = cellDate.getDay();
+    const weekdayIdx = jsDay === 0 ? 6 : jsDay - 1;
+    const day = DATA[currentPerson][weekdayIdx];
+
+    monthTotal += day.total;
+    if (!day.off) workingDays++;
+
+    const cell = document.createElement('div');
+    cell.className = 'month-cell' + (day.off ? ' off-day' : ' working') + (isCurrentMonth && date === today.getDate() ? ' is-today' : '');
+    cell.innerHTML = `
+      <div class="month-date">${date}</div>
+      <div class="month-hours">${day.off ? 'off' : day.total + 'h'}</div>
+    `;
+    grid.appendChild(cell);
+  }
+
+  document.getElementById('monthTotal').innerHTML = `
+    <span>${currentPerson} · ${workingDays} shift day${workingDays === 1 ? '' : 's'}</span>
+    <b>${monthTotal}h</b>
+  `;
+}
+
+document.getElementById('monthPrev').onclick = () => {
+  viewedMonth--;
+  if (viewedMonth < 0){ viewedMonth = 11; viewedYear--; }
+  renderMonthView();
+};
+document.getElementById('monthNext').onclick = () => {
+  viewedMonth++;
+  if (viewedMonth > 11){ viewedMonth = 0; viewedYear++; }
+  renderMonthView();
+};
+
+function renderAll(){
+  renderWhoStrip();
+  renderNowBanner();
+  renderHero();
+  renderPersonView();
+  renderDayStrip();
+  renderDayHero();
+  renderStaffDayView();
+  renderTimelineView();
+}
+
+setInterval(() => { renderNowBanner(); if (currentView === 'timeline') renderTimelineView(); }, 60000);
+
+function setView(view){
+  currentView = view;
+  document.querySelectorAll('.switch-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+
+  document.getElementById('whoStrip').classList.toggle('hidden', view !== 'person' && view !== 'month');
+  document.getElementById('heroBanner').classList.toggle('hidden', view !== 'person');
+  document.getElementById('personView').classList.toggle('hidden', view !== 'person');
+
+  document.getElementById('dayStrip').classList.toggle('hidden', view !== 'grid' && view !== 'timeline');
+  document.getElementById('dayHero').classList.toggle('hidden', view !== 'grid');
+  document.getElementById('staffDayView').classList.toggle('hidden', view !== 'grid');
+
+  document.getElementById('timelineView').classList.toggle('hidden', view !== 'timeline');
+
+  document.getElementById('topbar').classList.toggle('hidden', view !== 'grid' && view !== 'timeline');
+
+  document.getElementById('monthView').classList.toggle('hidden', view !== 'month');
+  if (view === 'month') renderMonthView();
+}
+
+document.querySelectorAll('.switch-btn').forEach(btn => {
+  btn.onclick = () => setView(btn.dataset.view);
+});
+
+renderAll();
+renderWeekLabel();
+setView('timeline');
+
+const WEEKDAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const _today = new Date();
+document.getElementById('todayDate').textContent = `${WEEKDAY_NAMES[_today.getDay()]} ${_today.getDate()} ${SHORT_MONTHS[_today.getMonth()]}`;
+
+function refreshCurrentView(){
+  renderAll();
+  if (currentView === 'grid') { renderDayHero(); renderStaffDayView(); }
+  if (currentView === 'timeline') renderTimelineView();
+  if (currentView === 'month') renderMonthView();
+}
+
+function setSyncStatus(state){
+  const el = document.getElementById('syncStatus');
+  if (state === 'synced'){
+    el.className = 'sync-status synced';
+    el.innerHTML = '<span class="dot"></span>Live';
+  } else {
+    el.className = 'sync-status';
+    el.innerHTML = '<span class="dot"></span>Offline copy';
+  }
+}
+
+if (firebaseReady){
+  try {
+    const rotaDocRef = doc(fbDb, 'rota', 'shifts');
+    onSnapshot(rotaDocRef, (snap) => {
+      if (snap.exists() && snap.data().json){
+        try {
+          const remote = JSON.parse(snap.data().json);
+          DATA = remote;
+          setSyncStatus('synced');
+          refreshCurrentView();
+        } catch(parseErr){
+          console.warn('Failed to parse remote rota data', parseErr);
+        }
+      } else {
+        setSyncStatus('offline');
+      }
+    }, (err) => {
+      console.warn('Firestore listener error', err);
+      setSyncStatus('offline');
+    });
+  } catch(e) {
+    console.warn('Could not attach Firestore listener', e);
+    setSyncStatus('offline');
+  }
+} else {
+  setSyncStatus('offline');
+}
+</script>
+</body>
+</html>

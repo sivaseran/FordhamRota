@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Rota Editor</title>
+<meta name="theme-color" content="#0F1B2D">
+<style>
+  :root{
+    --navy:#0F1B2D;
+    --navy-2:#16263D;
+    --teal:#1F3A3D;
+    --amber:#F5A623;
+    --amber-dim:#C6821A;
+    --cream:#F7F5F0;
+    --off:#8AA0AE;
+    --off-line:#28394D;
+    --green:#7FD858;
+    --red:#E5556B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0; min-height:100vh;}
+  body{
+    background:var(--navy);
+    color:var(--cream);
+    font-family:'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+    padding:20px 16px 60px;
+  }
+  h1{font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 4px;}
+  h1 .amber{color:var(--amber);}
+  .sub{font-size:12px; color:var(--off); margin-bottom:20px;}
+
+  .card{
+    background:var(--navy-2);
+    border:1px solid var(--off-line);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  label{
+    display:block;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--off);
+    font-weight:700;
+    margin-bottom:5px;
+    margin-top:12px;
+  }
+  label:first-child{margin-top:0;}
+  input[type=email], input[type=password], input[type=time], input[type=number]{
+    width:100%;
+    background:var(--navy);
+    border:1px solid var(--off-line);
+    color:var(--cream);
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:15px;
+  }
+  button{
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .btn{
+    background:var(--amber);
+    color:var(--navy);
+    border:none;
+    padding:12px;
+    border-radius:8px;
+    font-weight:800;
+    font-size:14px;
+    width:100%;
+  }
+  .btn.secondary{
+    background:none;
+    border:1px solid var(--off-line);
+    color:var(--off);
+  }
+  .btn.danger{
+    background:none;
+    border:1px solid var(--red);
+    color:var(--red);
+  }
+  .row{display:flex; gap:8px;}
+  .row > *{flex:1;}
+
+  .strip{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:8px;
+    margin-bottom:14px;
+  }
+  .strip::-webkit-scrollbar{display:none;}
+  .strip-btn{
+    flex:0 0 auto;
+    padding:9px 14px;
+    border-radius:100px;
+    border:1px solid var(--off-line);
+    background:var(--navy-2);
+    color:var(--off);
+    font-size:13px;
+    font-weight:700;
+  }
+  .strip-btn.active{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:var(--navy);
+  }
+
+  .shift-block{
+    border:1px solid var(--off-line);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
+    position:relative;
+  }
+  .shift-block .remove-btn{
+    position:absolute;
+    top:8px; right:8px;
+    background:none;
+    border:none;
+    color:var(--red);
+    font-size:12px;
+    font-weight:700;
+  }
+  .type-toggle{display:flex; gap:6px; margin-bottom:10px;}
+  .type-toggle button{
+    flex:1;
+    padding:8px;
+    border-radius:8px;
+    border:1px solid var(--off-line);
+    background:var(--navy);
+    color:var(--off);
+    font-size:12px;
+    font-weight:700;
+  }
+  .type-toggle button.active{
+    background:var(--teal);
+    border-color:var(--amber);
+    color:var(--amber);
+  }
+  .off-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 0;
+  }
+  .off-toggle span{font-size:14px; font-weight:700;}
+  .switch{
+    width:46px; height:26px;
+    background:var(--navy);
+    border:1px solid var(--off-line);
+    border-radius:100px;
+    position:relative;
+    cursor:pointer;
+  }
+  .switch.on{background:var(--amber); border-color:var(--amber);}
+  .switch .knob{
+    width:20px; height:20px;
+    background:var(--cream);
+    border-radius:50%;
+    position:absolute;
+    top:2px; left:2px;
+    transition:left 0.15s;
+  }
+  .switch.on .knob{left:23px; background:var(--navy);}
+
+  .status{
+    font-size:12px;
+    text-align:center;
+    margin-top:8px;
+    min-height:16px;
+  }
+  .status.ok{color:var(--green);}
+  .status.err{color:var(--red);}
+
+  .hidden{display:none !important;}
+  .total-preview{
+    text-align:right;
+    font-size:13px;
+    color:var(--off);
+    margin-top:8px;
+  }
+  .total-preview b{color:var(--amber); font-size:16px;}
+</style>
+</head>
+<body>
+
+<h1><span class="amber">Rota</span> Editor</h1>
+<div class="sub">Private — changes here update all 5 staff phones</div>
+
+<!-- LOGIN -->
+<div id="loginCard" class="card">
+  <label>Email</label>
+  <input type="email" id="loginEmail" placeholder="manager@fordham.local" autocomplete="username">
+  <label>Password</label>
+  <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+  <button class="btn" id="loginBtn" style="margin-top:16px;">Sign in</button>
+  <div class="status" id="loginStatus"></div>
+</div>
+
+<!-- EDITOR (hidden until logged in) -->
+<div id="editorArea" class="hidden">
+
+  <div class="strip" id="personStrip"></div>
+  <div class="strip" id="dayStrip"></div>
+
+  <div class="card">
+    <div class="off-toggle">
+      <span id="offLabel">Day off</span>
+      <div class="switch" id="offSwitch"><div class="knob"></div></div>
+    </div>
+
+    <div id="shiftsContainer"></div>
+
+    <button class="btn secondary" id="addShiftBtn" style="margin-top:6px;">+ Add shift</button>
+
+    <div class="total-preview">Total for this day <b id="dayTotalPreview">0h</b></div>
+  </div>
+
+  <button class="btn" id="saveBtn">Save changes</button>
+  <div class="status" id="saveStatus"></div>
+
+  <button class="btn secondary" id="logoutBtn" style="margin-top:24px;">Sign out</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDSLwIlHMB0Ej3kMePYtUJP97MTXvj3X5I",
+  authDomain: "fordhamrota.firebaseapp.com",
+  projectId: "fordhamrota",
+  storageBucket: "fordhamrota.firebasestorage.app",
+  messagingSenderId: "441480189702",
+  appId: "1:441480189702:web:8c0124f191e5776c19b087"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const STAFF = ["Alex","Regi","Jude","Seran","Uday"];
+const DAYS = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+
+// Fallback seed data — matches the main app's default. Used only if
+// Firestore has no document yet (first-ever save creates it for real).
+let DATA = {
+  Alex: [
+    {shifts:[{start:"05:30",end:"13:00"},{start:"14:00",end:"17:00"}], total:10.5},
+    {shifts:[{start:"05:30",end:"14:00"},{start:"17:00",end:"22:00"}], total:13.5},
+    {off:true, total:0},
+    {shifts:[{start:"05:30",end:"14:00"}], total:8.5},
+    {shifts:[{start:"05:30",end:"13:00"},{start:"15:00",end:"21:00"}], total:13.5},
+    {shifts:[{start:"05:30",end:"14:00"}], total:8.5},
+    {shifts:[{start:"05:30",end:"13:00"}], total:7.5}
+  ],
+  Regi: [
+    {shifts:[{start:"13:00",end:"21:00"}], total:8},
+    {shifts:[{start:"14:00",end:"21:00"}], total:7},
+    {shifts:[{start:"05:30",end:"13:00"}], total:7.5},
+    {off:true, total:0},
+    {shifts:[{start:"07:00",end:"13:30"}], total:6.5},
+    {off:true, total:0},
+    {off:true, total:0}
+  ],
+  Jude: [
+    {shifts:[{start:"08:00",end:"13:00"},{start:"17:00",end:"22:00"}], total:10},
+    {off:true, total:0},
+    {shifts:[{start:"13:00",end:"21:00"}], total:8},
+    {shifts:[{start:"—",end:"—",tag:"Delivery (4h)"},{start:"17:00",end:"22:00"}], total:9},
+    {shifts:[{start:"13:00",end:"22:00"}], total:9},
+    {shifts:[{start:"14:00",end:"21:00"}], total:7},
+    {shifts:[{start:"09:00",end:"14:00"},{start:"16:00",end:"22:00"}], total:11}
+  ],
+  Seran: [
+    {shifts:[{start:"—",end:"—",tag:"Delivery (5h)"}], total:5},
+    {shifts:[{start:"08:00",end:"17:00"}], total:9},
+    {off:true, total:0},
+    {shifts:[{start:"08:00",end:"17:00"}], total:9},
+    {off:true, total:0},
+    {off:true, total:0},
+    {off:true, total:0}
+  ],
+  Uday: [
+    {off:true, total:0},
+    {off:true, total:0},
+    {shifts:[{start:"08:00",end:"22:00"}], total:14},
+    {shifts:[{start:"14:00",end:"21:00"}], total:7},
+    {off:true, total:0},
+    {shifts:[{start:"08:00",end:"22:00"}], total:14},
+    {shifts:[{start:"14:00",end:"20:00"}], total:6}
+  ]
+};
+
+let currentPerson = STAFF[0];
+let currentDayIdx = 0;
+
+// ---------- LOGIN ----------
+document.getElementById('loginBtn').onclick = async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const statusEl = document.getElementById('loginStatus');
+  statusEl.className = 'status';
+  statusEl.textContent = 'Signing in…';
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch(e) {
+    statusEl.className = 'status err';
+    statusEl.textContent = 'Sign in failed — check email/password.';
+  }
+};
+
+document.getElementById('logoutBtn').onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, async (user) => {
+  if (user){
+    document.getElementById('loginCard').classList.add('hidden');
+    document.getElementById('editorArea').classList.remove('hidden');
+    await loadRemoteData();
+    renderPersonStrip();
+    renderDayStrip();
+    loadDayIntoForm();
+  } else {
+    document.getElementById('loginCard').classList.remove('hidden');
+    document.getElementById('editorArea').classList.add('hidden');
+  }
+});
+
+// ---------- LOAD ----------
+async function loadRemoteData(){
+  try {
+    const snap = await getDoc(doc(db, 'rota', 'shifts'));
+    if (snap.exists() && snap.data().json){
+      DATA = JSON.parse(snap.data().json);
+    }
+  } catch(e) {
+    console.warn('Could not load remote data, using local seed', e);
+  }
+}
+
+// ---------- STRIPS ----------
+function renderPersonStrip(){
+  const el = document.getElementById('personStrip');
+  el.innerHTML = '';
+  STAFF.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'strip-btn' + (name === currentPerson ? ' active' : '');
+    btn.textContent = name;
+    btn.onclick = () => { currentPerson = name; renderPersonStrip(); loadDayIntoForm(); };
+    el.appendChild(btn);
+  });
+}
+
+function renderDayStrip(){
+  const el = document.getElementById('dayStrip');
+  el.innerHTML = '';
+  DAYS.forEach((d, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'strip-btn' + (idx === currentDayIdx ? ' active' : '');
+    btn.textContent = d;
+    btn.onclick = () => { currentDayIdx = idx; renderDayStrip(); loadDayIntoForm(); };
+    el.appendChild(btn);
+  });
+}
+
+// ---------- FORM ----------
+let formShifts = [];
+let formOff = false;
+
+function loadDayIntoForm(){
+  const day = DATA[currentPerson][currentDayIdx];
+  formOff = !!day.off;
+  formShifts = day.shifts ? day.shifts.map(s => ({...s})) : [];
+  renderOffSwitch();
+  renderShiftsForm();
+  updateTotalPreview();
+}
+
+function renderOffSwitch(){
+  const sw = document.getElementById('offSwitch');
+  sw.classList.toggle('on', formOff);
+  document.getElementById('shiftsContainer').classList.toggle('hidden', formOff);
+  document.getElementById('addShiftBtn').classList.toggle('hidden', formOff);
+}
+
+document.getElementById('offSwitch').onclick = () => {
+  formOff = !formOff;
+  renderOffSwitch();
+  updateTotalPreview();
+};
+
+function renderShiftsForm(){
+  const container = document.getElementById('shiftsContainer');
+  container.innerHTML = '';
+
+  formShifts.forEach((shift, i) => {
+    const isDelivery = !!shift.tag;
+    const block = document.createElement('div');
+    block.className = 'shift-block';
+
+    block.innerHTML = `
+      <button class="remove-btn" data-i="${i}">Remove</button>
+      <div class="type-toggle">
+        <button class="type-timed ${!isDelivery ? 'active' : ''}" data-i="${i}">Timed</button>
+        <button class="type-delivery ${isDelivery ? 'active' : ''}" data-i="${i}">Delivery</button>
+      </div>
+      <div class="timed-fields ${isDelivery ? 'hidden' : ''}">
+        <div class="row">
+          <div>
+            <label>Start</label>
+            <input type="time" class="start-input" data-i="${i}" value="${!isDelivery ? shift.start : ''}">
+          </div>
+          <div>
+            <label>End</label>
+            <input type="time" class="end-input" data-i="${i}" value="${!isDelivery ? shift.end : ''}">
+          </div>
+        </div>
+      </div>
+      <div class="delivery-fields ${isDelivery ? '' : 'hidden'}">
+        <label>Delivery hours</label>
+        <input type="number" min="0" step="0.5" class="delivery-hours" data-i="${i}" value="${isDelivery ? (parseFloat(shift.tag.match(/[\d.]+/)?.[0]) || 0) : ''}">
+      </div>
+    `;
+    container.appendChild(block);
+  });
+
+  container.querySelectorAll('.remove-btn').forEach(b => {
+    b.onclick = () => { formShifts.splice(+b.dataset.i, 1); renderShiftsForm(); updateTotalPreview(); };
+  });
+  container.querySelectorAll('.type-timed').forEach(b => {
+    b.onclick = () => { const i = +b.dataset.i; formShifts[i] = {start:"08:00", end:"17:00"}; renderShiftsForm(); updateTotalPreview(); };
+  });
+  container.querySelectorAll('.type-delivery').forEach(b => {
+    b.onclick = () => { const i = +b.dataset.i; formShifts[i] = {start:"—", end:"—", tag:"Delivery (4h)"}; renderShiftsForm(); updateTotalPreview(); };
+  });
+  container.querySelectorAll('.start-input').forEach(inp => {
+    inp.onchange = () => { formShifts[+inp.dataset.i].start = inp.value; updateTotalPreview(); };
+  });
+  container.querySelectorAll('.end-input').forEach(inp => {
+    inp.onchange = () => { formShifts[+inp.dataset.i].end = inp.value; updateTotalPreview(); };
+  });
+  container.querySelectorAll('.delivery-hours').forEach(inp => {
+    inp.onchange = () => {
+      const hrs = parseFloat(inp.value) || 0;
+      formShifts[+inp.dataset.i].tag = `Delivery (${hrs}h)`;
+      updateTotalPreview();
+    };
+  });
+}
+
+document.getElementById('addShiftBtn').onclick = () => {
+  formShifts.push({start:"08:00", end:"17:00"});
+  renderShiftsForm();
+  updateTotalPreview();
+};
+
+function toMinutes(hhmm){
+  if (!hhmm || hhmm === "—") return null;
+  const [h,m] = hhmm.split(':').map(Number);
+  return h*60+m;
+}
+
+function computeTotal(){
+  if (formOff) return 0;
+  let total = 0;
+  formShifts.forEach(s => {
+    if (s.tag){
+      const hrs = parseFloat(s.tag.match(/[\d.]+/)?.[0]) || 0;
+      total += hrs;
+    } else {
+      const start = toMinutes(s.start), end = toMinutes(s.end);
+      if (start !== null && end !== null) total += (end - start) / 60;
+    }
+  });
+  return Math.round(total * 100) / 100;
+}
+
+function updateTotalPreview(){
+  document.getElementById('dayTotalPreview').textContent = computeTotal() + 'h';
+}
+
+// ---------- SAVE ----------
+document.getElementById('saveBtn').onclick = async () => {
+  const statusEl = document.getElementById('saveStatus');
+  statusEl.className = 'status';
+  statusEl.textContent = 'Saving…';
+
+  const total = computeTotal();
+  DATA[currentPerson][currentDayIdx] = formOff
+    ? { off: true, total: 0 }
+    : { shifts: formShifts.map(s => ({...s})), total };
+
+  try {
+    await setDoc(doc(db, 'rota', 'shifts'), { json: JSON.stringify(DATA) });
+    statusEl.className = 'status ok';
+    statusEl.textContent = 'Saved — all phones will update.';
+  } catch(e) {
+    statusEl.className = 'status err';
+    statusEl.textContent = 'Save failed: ' + e.message;
+  }
+};
+</script>
+</body>
+</html>
