@@ -829,7 +829,19 @@ try {
 } catch(e) {
   console.warn('Firebase init failed, using local data only', e);
 }
-const STAFF = ["Alex","Regi","Jude","Seran","Uday"];
+const DEFAULT_STAFF = ["Alex","Regi","Jude","Seran","Uday"];
+let STAFF = [...DEFAULT_STAFF];
+
+function blankWeek(){
+  return Array.from({length:7}, () => ({ off: true, total: 0 }));
+}
+
+function hydrateStaffData(){
+  STAFF.forEach(name => {
+    if (!DEFAULT_DATA[name]) DEFAULT_DATA[name] = blankWeek();
+    if (!DATA[name]) DATA[name] = blankWeek();
+  });
+}
 const DAYS = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 const DAY_FULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
@@ -1553,6 +1565,26 @@ renderAll();
 renderWeekLabel();
 setView('timeline');
 applyWeekData();
+
+async function loadStaffList(){
+  if (!firebaseReady) return;
+  try {
+    const snap = await getDoc(doc(fbDb, 'rota', 'staff_list'));
+    if (snap.exists() && Array.isArray(snap.data().names) && snap.data().names.length){
+      const newStaff = snap.data().names;
+      const changed = JSON.stringify(newStaff) !== JSON.stringify(STAFF);
+      if (changed){
+        STAFF = newStaff;
+        hydrateStaffData();
+        renderAll();
+        if (currentView === 'month') renderMonthView();
+      }
+    }
+  } catch(e) {
+    console.warn('Could not load staff list, using default', e);
+  }
+}
+loadStaffList();
 
 const WEEKDAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const _today = new Date();
