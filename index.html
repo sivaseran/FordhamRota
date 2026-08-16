@@ -938,7 +938,7 @@ function renderWeekLabel(){
 }
 
 async function applyWeekData(){
-  if (!firebaseReady){ DATA = DEFAULT_DATA; refreshCurrentView(); return; }
+  if (!firebaseReady){ DATA = DEFAULT_DATA; hydrateStaffData(); refreshCurrentView(); return; }
   try {
     const snap = await getDoc(doc(fbDb, 'rota', `week_${weekKey(viewedWeekStart)}`));
     if (snap.exists() && snap.data().json){
@@ -950,6 +950,7 @@ async function applyWeekData(){
     console.warn('Could not load week override, showing default pattern', e);
     DATA = DEFAULT_DATA;
   }
+  hydrateStaffData();
   refreshCurrentView();
 }
 

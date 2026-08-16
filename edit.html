@@ -1088,6 +1088,7 @@ async function loadWeekData(){
     if (snap.exists() && snap.data().json){
       DATA = JSON.parse(snap.data().json);
       isCustomWeek = true;
+      hydrateStaffData();
       return;
     }
   } catch(e) {
@@ -1096,6 +1097,7 @@ async function loadWeekData(){
   // No override for this week — start from a fresh copy of the default pattern
   DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
   isCustomWeek = false;
+  hydrateStaffData();
 }
 
 async function refreshWeek(){
