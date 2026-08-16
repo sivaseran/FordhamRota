@@ -267,7 +267,7 @@
   .total-preview b{color:var(--amber); font-size:16px;}
 </style>
 </head>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <body>
 
 <h1><span class="amber">Rota</span> Editor</h1>
@@ -634,7 +634,7 @@ async function loadReport(){
     });
 
     rows.sort((a,b) => a.date.localeCompare(b.date) || a.person.localeCompare(b.person));
-    currentReportRows = { rows, periodLabel };
+    currentReportRows = { rows, periodLabel, startDate: new Date(startDate), endDate: new Date(endDate) };
 
     if (rows.length === 0){
       wrap.innerHTML = '<div class="sub" style="text-align:center;">No time logged for this period yet.</div>';
@@ -668,22 +668,239 @@ async function loadReport(){
 
 document.getElementById('loadReportBtn').onclick = loadReport;
 
-document.getElementById('downloadExcelBtn').onclick = () => {
-  if (!currentReportRows || typeof XLSX === 'undefined') return;
-  const data = currentReportRows.rows.map(r => ({
-    Person: r.person,
-    Date: r.date,
-    'Scheduled Start': r.scheduledStart || '',
-    'Scheduled End': r.scheduledEnd || '',
-    'Scheduled Hours': r.scheduledHours ?? '',
-    'Actual Start': r.actualStart,
-    'Actual End': r.actualEnd,
-    'Actual Hours': r.actualHours ?? ''
-  }));
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Timesheet');
-  XLSX.writeFile(wb, `Fordham-timesheet-${currentReportRows.periodLabel.replace(/\s+/g,'_')}.xlsx`);
+function parseDateStr(s){
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function mondayOfDateObj(dt){
+  const d = new Date(dt);
+  const jsDay = d.getDay();
+  const diff = jsDay === 0 ? -6 : 1 - jsDay;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+function allocatedHoursFor(person, dateObj){
+  const jsDay = dateObj.getDay();
+  const weekdayIdx = jsDay === 0 ? 6 : jsDay - 1;
+  const day = DEFAULT_DATA[person] ? DEFAULT_DATA[person][weekdayIdx] : null;
+  return (day && !day.off) ? day.total : 0;
+}
+
+const FILL_OVER = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4A6A6' } };   // red: worked more
+const FILL_UNDER = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE699' } };  // yellow: worked less
+const FILL_HEADER = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F3A3D' } };
+const FILL_WEEK_LABEL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5A623' } };
+const FILL_TOTALROW = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E2E1' } };
+const THIN_BORDER = { style: 'thin', color: { argb: 'FFB7B7B7' } };
+
+function varianceFill(allocated, actual){
+  if (actual > allocated) return FILL_OVER;
+  if (actual < allocated) return FILL_UNDER;
+  return null;
+}
+function varianceFontColor(allocated, actual){
+  if (actual > allocated) return 'FF8A1F1F';
+  if (actual < allocated) return 'FF7A5B00';
+  return 'FF000000';
+}
+
+document.getElementById('downloadExcelBtn').onclick = async () => {
+  if (!currentReportRows || typeof ExcelJS === 'undefined') return;
+
+  // Pivot logged entries into date -> person -> total actual hours that day
+  const actualMap = {};
+  currentReportRows.rows.forEach(r => {
+    if (!actualMap[r.date]) actualMap[r.date] = {};
+    actualMap[r.date][r.person] = (actualMap[r.date][r.person] || 0) + (r.actualHours || 0);
+  });
+
+  // Every calendar day in the selected period, not just logged ones
+  const allDates = [];
+  const cursor = new Date(currentReportRows.startDate);
+  const end = new Date(currentReportRows.endDate);
+  while (cursor <= end){
+    allDates.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  // Group into Mon–Sun week blocks, clipped to the selected period
+  const weeks = [];
+  let currentWeek = [];
+  allDates.forEach(d => {
+    if (d.getDay() === 1 && currentWeek.length){ // Monday starts a new block
+      weeks.push(currentWeek);
+      currentWeek = [];
+    }
+    currentWeek.push(d);
+  });
+  if (currentWeek.length) weeks.push(currentWeek);
+
+  const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+  const workbook = new ExcelJS.Workbook();
+  const ws = workbook.addWorksheet('Timesheet');
+  ws.getColumn(1).width = 12;
+  ws.getColumn(2).width = 6;
+  for (let i = 3; i <= 2 + 2*STAFF.length + 2; i++) ws.getColumn(i).width = 9;
+
+  weeks.forEach((week, wi) => {
+    // Week label row
+    const labelRow = ws.addRow([`WEEK-${wi+1}`]);
+    ws.mergeCells(labelRow.number, 1, labelRow.number, 2);
+    for (let c = 1; c <= 2 + 2*STAFF.length + 2; c++){
+      const cell = labelRow.getCell(c);
+      cell.fill = FILL_WEEK_LABEL;
+      cell.font = { name: 'Arial', bold: true, size: 11 };
+    }
+
+    // Header row (names, merged across Alloc/Actual)
+    const headerRow = ws.addRow(['Date', 'Day']);
+    let c = 3;
+    STAFF.forEach(name => {
+      headerRow.getCell(c).value = name;
+      ws.mergeCells(headerRow.number, c, headerRow.number, c+1);
+      c += 2;
+    });
+    headerRow.getCell(c).value = 'Total';
+    ws.mergeCells(headerRow.number, c, headerRow.number, c+1);
+    for (let cc = 1; cc <= c+1; cc++){
+      const cell = headerRow.getCell(cc);
+      cell.fill = FILL_HEADER;
+      cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    }
+
+    // Sub-header row (Alloc / Actual)
+    const subRow = ws.addRow(['', '']);
+    c = 3;
+    STAFF.forEach(() => {
+      subRow.getCell(c).value = 'Alloc';
+      subRow.getCell(c+1).value = 'Actual';
+      c += 2;
+    });
+    subRow.getCell(c).value = 'Alloc';
+    subRow.getCell(c+1).value = 'Actual';
+    for (let cc = 1; cc <= c+1; cc++){
+      const cell = subRow.getCell(cc);
+      cell.fill = FILL_HEADER;
+      cell.font = { name: 'Arial', italic: true, size: 8, color: { argb: 'FFFFFFFF' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    }
+
+    const weekAllocTotals = STAFF.map(() => 0);
+    const weekActualTotals = STAFF.map(() => 0);
+
+    week.forEach(dateObj => {
+      const ds = weekKey(dateObj);
+      const weekdayJs = dateObj.getDay();
+      const dayName = DAY_NAMES[weekdayJs === 0 ? 6 : weekdayJs - 1];
+
+      const dataRow = ws.addRow([ds, dayName]);
+      dataRow.getCell(1).font = { name: 'Arial', size: 10 };
+      dataRow.getCell(2).font = { name: 'Arial', size: 10 };
+      dataRow.getCell(1).border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
+      dataRow.getCell(2).border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
+
+      let cc = 3;
+      let dayAllocTotal = 0, dayActualTotal = 0;
+      STAFF.forEach((name, si) => {
+        const allocated = allocatedHoursFor(name, dateObj);
+        const actual = (actualMap[ds] && actualMap[ds][name]) || 0;
+        weekAllocTotals[si] += allocated;
+        weekActualTotals[si] += actual;
+        dayAllocTotal += allocated;
+        dayActualTotal += actual;
+
+        const allocCell = dataRow.getCell(cc);
+        const actualCell = dataRow.getCell(cc+1);
+        allocCell.value = allocated || null;
+        actualCell.value = actual || null;
+        allocCell.font = { name: 'Arial', size: 10 };
+        allocCell.alignment = { horizontal: 'center' };
+        actualCell.alignment = { horizontal: 'center' };
+        allocCell.border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
+        actualCell.border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
+
+        const fill = varianceFill(allocated, actual);
+        if (fill) actualCell.fill = fill;
+        actualCell.font = { name: 'Arial', size: 10, bold: !!fill, color: { argb: varianceFontColor(allocated, actual) } };
+        cc += 2;
+      });
+
+      const dayAllocCell = dataRow.getCell(cc);
+      const dayActualCell = dataRow.getCell(cc+1);
+      dayAllocCell.value = dayAllocTotal || null;
+      dayActualCell.value = dayActualTotal || null;
+      dayAllocCell.font = { name: 'Arial', bold: true, size: 10 };
+      dayAllocCell.alignment = { horizontal: 'center' };
+      dayActualCell.alignment = { horizontal: 'center' };
+      dayAllocCell.border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
+      dayActualCell.border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
+      const dayFill = varianceFill(dayAllocTotal, dayActualTotal);
+      if (dayFill) dayActualCell.fill = dayFill;
+      dayActualCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: varianceFontColor(dayAllocTotal, dayActualTotal) } };
+    });
+
+    // Week total row
+    const totalRow = ws.addRow(['Week Total', '']);
+    ws.mergeCells(totalRow.number, 1, totalRow.number, 2);
+    totalRow.getCell(1).font = { name: 'Arial', bold: true, size: 10 };
+
+    let tc = 3;
+    let grandAlloc = 0, grandActual = 0;
+    STAFF.forEach((name, si) => {
+      const a = weekAllocTotals[si], b = weekActualTotals[si];
+      grandAlloc += a; grandActual += b;
+      const ca = totalRow.getCell(tc);
+      const cb = totalRow.getCell(tc+1);
+      ca.value = a || null;
+      cb.value = b || null;
+      ca.font = { name: 'Arial', bold: true, size: 10 };
+      ca.alignment = { horizontal: 'center' };
+      cb.alignment = { horizontal: 'center' };
+      const fill = varianceFill(a, b);
+      if (fill) cb.fill = fill;
+      cb.font = { name: 'Arial', bold: true, size: 10, color: { argb: varianceFontColor(a, b) } };
+      tc += 2;
+    });
+    const gAllocCell = totalRow.getCell(tc);
+    const gActualCell = totalRow.getCell(tc+1);
+    gAllocCell.value = grandAlloc || null;
+    gActualCell.value = grandActual || null;
+    gAllocCell.font = { name: 'Arial', bold: true, size: 10 };
+    const gFill = varianceFill(grandAlloc, grandActual);
+    gActualCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: varianceFontColor(grandAlloc, grandActual) } };
+    if (gFill) gActualCell.fill = gFill;
+    for (let cc = 1; cc <= tc+1; cc++){
+      if (!totalRow.getCell(cc).fill) totalRow.getCell(cc).fill = FILL_TOTALROW;
+    }
+
+    ws.addRow([]); // spacer between weeks
+  });
+
+  // Legend
+  const legendTitle = ws.addRow(['Legend:']);
+  legendTitle.getCell(1).font = { name: 'Arial', bold: true, size: 9 };
+  const r1 = ws.addRow(['Red = worked MORE than scheduled (over-utilized)']);
+  r1.getCell(1).font = { name: 'Arial', italic: true, size: 9 };
+  r1.getCell(1).fill = FILL_OVER;
+  const r2 = ws.addRow(['Yellow = worked LESS than scheduled (under-utilized)']);
+  r2.getCell(1).font = { name: 'Arial', italic: true, size: 9 };
+  r2.getCell(1).fill = FILL_UNDER;
+  ws.addRow(['No fill = matched schedule exactly']).getCell(1).font = { name: 'Arial', italic: true, size: 9 };
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Fordham-timesheet-${currentReportRows.periodLabel.replace(/\s+/g,'_')}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 };
 
 document.getElementById('emailReportBtn').onclick = () => {
