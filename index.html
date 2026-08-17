@@ -1320,8 +1320,8 @@ async function toggleLogPanel(btn){
     </div>
     <div class="log-fields hidden">
       <div class="log-row">
-        <input type="time" class="log-start-input" value="${defStart}">
-        <input type="time" class="log-end-input" value="${defEnd}">
+        <input type="time" class="log-start-input" value="${defStart}" min="05:30" max="22:00">
+        <input type="time" class="log-end-input" value="${defEnd}" min="05:30" max="22:00">
       </div>
       <button class="log-save-btn">Save</button>
     </div>
@@ -1385,6 +1385,27 @@ async function toggleLogPanel(btn){
       statusEl.className = 'log-status err';
       statusEl.textContent = 'Enter both start and end time.';
       return;
+    }
+
+    const SHOP_OPEN = 5*60 + 30, SHOP_CLOSE = 22*60;
+    const startMin = toMinutes(actualStart), endMin = toMinutes(actualEnd);
+    if (startMin < SHOP_OPEN || startMin > SHOP_CLOSE || endMin < SHOP_OPEN || endMin > SHOP_CLOSE){
+      const proceed = confirm(`This is outside shop hours (05:30–22:00). You entered ${actualStart}–${actualEnd}. Save anyway?`);
+      if (!proceed){
+        statusEl.className = 'log-status';
+        statusEl.textContent = 'Not saved.';
+        return;
+      }
+    }
+
+    const defStart = btn.dataset.defstart, defEnd = btn.dataset.defend;
+    if (defStart !== "—" && (actualStart !== defStart || actualEnd !== defEnd)){
+      const proceed = confirm(`You were scheduled ${defStart}–${defEnd}, but entered ${actualStart}–${actualEnd}. Is this correct?`);
+      if (!proceed){
+        statusEl.className = 'log-status';
+        statusEl.textContent = 'Not saved.';
+        return;
+      }
     }
 
     statusEl.className = 'log-status';
