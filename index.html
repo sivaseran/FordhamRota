@@ -1455,7 +1455,22 @@ function renderStaffDayView(){
   });
 }
 
-function renderMonthView(){
+async function resolveWeekDataFor(mondayDate){
+  if (!firebaseReady) return DEFAULT_DATA;
+  try {
+    const snap = await getDoc(doc(fbDb, 'rota', `week_${weekKey(mondayDate)}`));
+    if (snap.exists() && snap.data().json){
+      const parsed = JSON.parse(snap.data().json);
+      STAFF.forEach(name => { if (!parsed[name]) parsed[name] = blankWeek(); });
+      return parsed;
+    }
+  } catch(e) {
+    console.warn('Could not resolve a week for month view, using default pattern', e);
+  }
+  return DEFAULT_DATA;
+}
+
+async function renderMonthView(){
   document.getElementById('monthLabel').textContent = `${MONTH_NAMES[viewedMonth]} ${viewedYear}`;
 
   const grid = document.getElementById('monthGrid');
@@ -1482,6 +1497,16 @@ function renderMonthView(){
   const today = new Date();
   const isCurrentMonth = today.getMonth() === viewedMonth && today.getFullYear() === viewedYear;
 
+  // Resolve each distinct week block touching this month exactly once
+  const weekDataCache = {};
+  for (let date = 1; date <= daysInMonth; date++){
+    const cellDate = new Date(viewedYear, viewedMonth, date);
+    const mondayKey = weekKey(mondayOf(cellDate));
+    if (!(mondayKey in weekDataCache)){
+      weekDataCache[mondayKey] = await resolveWeekDataFor(mondayOf(cellDate));
+    }
+  }
+
   let monthTotal = 0;
   let workingDays = 0;
 
@@ -1489,7 +1514,11 @@ function renderMonthView(){
     const cellDate = new Date(viewedYear, viewedMonth, date);
     const jsDay = cellDate.getDay();
     const weekdayIdx = jsDay === 0 ? 6 : jsDay - 1;
-    const day = DATA[currentPerson][weekdayIdx];
+    const mondayKey = weekKey(mondayOf(cellDate));
+    const weekData = weekDataCache[mondayKey];
+    const day = (weekData[currentPerson] && weekData[currentPerson][weekdayIdx])
+      ? weekData[currentPerson][weekdayIdx]
+      : DEFAULT_DATA[currentPerson][weekdayIdx];
 
     monthTotal += day.total;
     if (!day.off) workingDays++;
