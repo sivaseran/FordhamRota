@@ -155,23 +155,9 @@
   .grid-legend .over{ background:#F4A6A6; color:#8A1F1F; padding:1px 5px; border-radius:3px; font-weight:800; }
   .grid-legend .under{ background:#FFE699; color:#7A5B00; padding:1px 5px; border-radius:3px; font-weight:800; }
 
-  .month-summary-block{
-    margin-bottom:16px;
-    padding-bottom:12px;
-    border-bottom:2px solid var(--amber-dim);
-  }
-  .month-summary-title{
-    font-size:13px;
-    font-weight:800;
-    color:var(--amber);
-    text-transform:uppercase;
-    letter-spacing:0.03em;
-    margin-bottom:8px;
-  }
-  .grid-report-table td.name-col{
-    text-align:left;
-    padding-left:10px;
-    color:var(--amber);
+  .grid-month-total-row td{
+    background:var(--amber-dim);
+    color:var(--navy);
     font-weight:800;
   }
 
@@ -801,28 +787,8 @@ function computeMonthTotals(weeks){
   return { alloc, actual };
 }
 
-function renderMonthSummaryHtml(weeks){
-  if (weeks.length <= 1) return ''; // only meaningful across multiple weeks
-  const { alloc, actual } = computeMonthTotals(weeks);
-  let html = '<div class="month-summary-block">';
-  html += '<div class="month-summary-title">Month Total</div>';
-  html += '<div class="report-scroll"><table class="grid-report-table">';
-  html += '<tr class="grid-header"><td>Person</td><td><span>Alloc</span><span>Actual</span></td></tr>';
-  STAFF.forEach((name, si) => {
-    const a = alloc[si], b = actual[si];
-    const cls = b > a ? 'over' : (b < a ? 'under' : '');
-    html += `<tr><td class="name-col">${name}</td><td>${a || '–'}<span class="${cls}">${b || '–'}</span></td></tr>`;
-  });
-  const grandAlloc = alloc.reduce((s,v)=>s+v,0), grandActual = actual.reduce((s,v)=>s+v,0);
-  const gCls = grandActual > grandAlloc ? 'over' : (grandActual < grandAlloc ? 'under' : '');
-  html += `<tr class="grid-total-row"><td>Everyone</td><td>${grandAlloc || '–'}<span class="${gCls}">${grandActual || '–'}</span></td></tr>`;
-  html += '</table></div></div>';
-  return html;
-}
-
 function renderReportHtml(weeks){
-  let html = renderMonthSummaryHtml(weeks);
-  html += '<div class="report-scroll"><table class="grid-report-table">';
+  let html = '<div class="report-scroll"><table class="grid-report-table">';
   weeks.forEach(week => {
     html += `<tr class="grid-week-label"><td colspan="${2 + STAFF.length + 1}">WEEK-${week.weekNum}</td></tr>`;
     html += '<tr class="grid-header"><td>Date</td><td>Day</td>' + STAFF.map(n => `<td>${n}</td>`).join('') + '<td>Total</td></tr>';
@@ -846,9 +812,23 @@ function renderReportHtml(weeks){
     });
     const gCls = week.grandActual > week.grandAlloc ? 'over' : (week.grandActual < week.grandAlloc ? 'under' : '');
     html += `<td>${week.grandAlloc || '–'}<span class="${gCls}">${week.grandActual || '–'}</span></td></tr>`;
+
+    // After the last week's total, add one Month Total row in the same columns
+    if (week.weekNum === weeks.length && weeks.length > 1){
+      const { alloc, actual } = computeMonthTotals(weeks);
+      html += `<tr class="grid-total-row grid-month-total-row"><td colspan="2">Month Total</td>`;
+      let monthGrandAlloc = 0, monthGrandActual = 0;
+      STAFF.forEach((_, si) => {
+        const a = alloc[si], b = actual[si];
+        monthGrandAlloc += a; monthGrandActual += b;
+        const cls = b > a ? 'over' : (b < a ? 'under' : '');
+        html += `<td>${a || '–'}<span class="${cls}">${b || '–'}</span></td>`;
+      });
+      const mCls = monthGrandActual > monthGrandAlloc ? 'over' : (monthGrandActual < monthGrandAlloc ? 'under' : '');
+      html += `<td>${monthGrandAlloc || '–'}<span class="${mCls}">${monthGrandActual || '–'}</span></td></tr>`;
+    }
   });
   html += '</table></div>';
-  html += renderMonthSummaryHtml(weeks);
   html += '<div class="grid-legend"><span class="over">Over</span> = worked more than scheduled &nbsp; <span class="under">Under</span> = worked less &nbsp; plain = matched</div>';
   return html;
 }
@@ -926,8 +906,7 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
   ws.getColumn(2).width = 6;
   for (let i = 3; i <= 2 + 2*STAFF.length + 2; i++) ws.getColumn(i).width = 9;
 
-  function writeMonthSummary(){
-    if (weeks.length <= 1) return;
+  function computeMonthTotalsForExcel(){
     const monthAlloc = STAFF.map(() => 0);
     const monthActual = STAFF.map(() => 0);
     weeks.forEach(week => {
@@ -939,35 +918,8 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
         });
       });
     });
-
-    const titleRow = ws.addRow(['MONTH TOTAL']);
-    ws.mergeCells(titleRow.number, 1, titleRow.number, 2);
-    titleRow.getCell(1).font = { name: 'Arial', bold: true, size: 12, color: { argb: 'FFF5A623' } };
-
-    const mHeaderRow = ws.addRow(['Person', '', 'Alloc', 'Actual']);
-    mHeaderRow.getCell(1).font = { name: 'Arial', bold: true, size: 10 };
-
-    let monthGrandAlloc = 0, monthGrandActual = 0;
-    STAFF.forEach((name, si) => {
-      const a = monthAlloc[si], b = monthActual[si];
-      monthGrandAlloc += a; monthGrandActual += b;
-      const r = ws.addRow([name, '', a || null, b || null]);
-      r.getCell(1).font = { name: 'Arial', bold: true, size: 10, color: { argb: 'FFF5A623' } };
-      const fill = varianceFill(a, b);
-      if (fill) r.getCell(4).fill = fill;
-      r.getCell(4).font = { name: 'Arial', bold: !!fill, size: 10, color: { argb: varianceFontColor(a, b) } };
-    });
-    const totalR = ws.addRow(['Everyone', '', monthGrandAlloc || null, monthGrandActual || null]);
-    totalR.getCell(1).font = { name: 'Arial', bold: true, size: 10 };
-    const gFill = varianceFill(monthGrandAlloc, monthGrandActual);
-    if (gFill) totalR.getCell(4).fill = gFill;
-    totalR.getCell(4).font = { name: 'Arial', bold: true, size: 10, color: { argb: varianceFontColor(monthGrandAlloc, monthGrandActual) } };
-
-    ws.addRow([]);
-    ws.addRow([]);
+    return { monthAlloc, monthActual };
   }
-
-  writeMonthSummary();
 
   weeks.forEach((week, wi) => {
     // Week label row
@@ -1101,10 +1053,43 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
       if (!totalRow.getCell(cc).fill) totalRow.getCell(cc).fill = FILL_TOTALROW;
     }
 
+    if (wi === weeks.length - 1 && weeks.length > 1){
+      const { monthAlloc, monthActual } = computeMonthTotalsForExcel();
+      const monthRow = ws.addRow(['Month Total', '']);
+      ws.mergeCells(monthRow.number, 1, monthRow.number, 2);
+      monthRow.getCell(1).font = { name: 'Arial', bold: true, size: 10, color: { argb: 'FF1F3A3D' } };
+
+      let mc = 3;
+      let monthGrandAlloc = 0, monthGrandActual = 0;
+      STAFF.forEach((name, si) => {
+        const a = monthAlloc[si], b = monthActual[si];
+        monthGrandAlloc += a; monthGrandActual += b;
+        const ca = monthRow.getCell(mc);
+        const cb = monthRow.getCell(mc+1);
+        ca.value = a || null;
+        cb.value = b || null;
+        ca.font = { name: 'Arial', bold: true, size: 10, color: { argb: 'FF1F3A3D' } };
+        ca.alignment = { horizontal: 'center' };
+        cb.alignment = { horizontal: 'center' };
+        const fill = varianceFill(a, b);
+        cb.fill = fill || { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6821A' } };
+        cb.font = { name: 'Arial', bold: true, size: 10, color: { argb: fill ? varianceFontColor(a, b) : 'FF1F3A3D' } };
+        mc += 2;
+      });
+      const mAllocCell = monthRow.getCell(mc);
+      const mActualCell = monthRow.getCell(mc+1);
+      mAllocCell.value = monthGrandAlloc || null;
+      mActualCell.value = monthGrandActual || null;
+      mAllocCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: 'FF1F3A3D' } };
+      const mFill = varianceFill(monthGrandAlloc, monthGrandActual);
+      mActualCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: mFill ? varianceFontColor(monthGrandAlloc, monthGrandActual) : 'FF1F3A3D' } };
+      for (let cc = 1; cc <= mc+1; cc++){
+        if (!monthRow.getCell(cc).fill) monthRow.getCell(cc).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6821A' } };
+      }
+    }
+
     ws.addRow([]); // spacer between weeks
   });
-
-  writeMonthSummary();
 
   // Legend
   const legendTitle = ws.addRow(['Legend:']);
