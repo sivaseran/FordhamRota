@@ -848,6 +848,7 @@ function renderReportHtml(weeks){
     html += `<td>${week.grandAlloc || '–'}<span class="${gCls}">${week.grandActual || '–'}</span></td></tr>`;
   });
   html += '</table></div>';
+  html += renderMonthSummaryHtml(weeks);
   html += '<div class="grid-legend"><span class="over">Over</span> = worked more than scheduled &nbsp; <span class="under">Under</span> = worked less &nbsp; plain = matched</div>';
   return html;
 }
@@ -925,7 +926,8 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
   ws.getColumn(2).width = 6;
   for (let i = 3; i <= 2 + 2*STAFF.length + 2; i++) ws.getColumn(i).width = 9;
 
-  if (weeks.length > 1){
+  function writeMonthSummary(){
+    if (weeks.length <= 1) return;
     const monthAlloc = STAFF.map(() => 0);
     const monthActual = STAFF.map(() => 0);
     weeks.forEach(week => {
@@ -964,6 +966,8 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
     ws.addRow([]);
     ws.addRow([]);
   }
+
+  writeMonthSummary();
 
   weeks.forEach((week, wi) => {
     // Week label row
@@ -1099,6 +1103,8 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
 
     ws.addRow([]); // spacer between weeks
   });
+
+  writeMonthSummary();
 
   // Legend
   const legendTitle = ws.addRow(['Legend:']);
