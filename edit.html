@@ -161,6 +161,147 @@
     font-weight:800;
   }
 
+  /* ===== Ported viewing styles (Staff/Day/Timeline tabs) ===== */
+  .view-strip{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:14px 0;
+  }
+  .view-strip::-webkit-scrollbar{display:none;}
+  .view-who-btn{
+    flex:0 0 auto;
+    padding:9px 16px;
+    border-radius:100px;
+    border:1px solid var(--off-line);
+    background:var(--navy-2);
+    color:var(--off);
+    font-size:13px;
+    font-weight:700;
+  }
+  .view-who-btn.active{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:var(--navy);
+  }
+  .view-day-strip{
+    display:flex;
+    gap:4px;
+    padding:10px 0;
+  }
+  .view-day-btn{
+    flex:1;
+    padding:8px 2px;
+    border-radius:8px;
+    border:1px solid var(--off-line);
+    background:var(--navy-2);
+    color:var(--off);
+    font-size:11.5px;
+    font-weight:700;
+  }
+  .view-day-btn.active{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:var(--navy);
+  }
+  .view-day-btn.is-today::after{ content:" •"; }
+
+  .view-hero{
+    margin:0 0 14px;
+    background:linear-gradient(135deg, var(--teal), var(--navy-2));
+    border:1px solid var(--off-line);
+    border-radius:14px;
+    padding:16px 16px 14px;
+  }
+  .view-hero.now{
+    background:linear-gradient(135deg, #1B2E1A, var(--navy-2));
+    border-color:#3A5A34;
+  }
+  .view-hero .eyebrow{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--amber);
+    font-weight:800;
+    margin-bottom:6px;
+  }
+  .view-hero.now .eyebrow{ color:#7FD858; }
+  .view-hero .big{ font-size:22px; font-weight:800; }
+  .view-hero .sub{ font-size:13px; color:var(--off); margin-top:4px; }
+  .view-hero .weektotal{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px solid var(--off-line);
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    color:var(--off);
+  }
+  .view-hero .weektotal b{ color:var(--cream); font-size:18px; }
+  .view-now-list{ display:flex; flex-direction:column; gap:6px; }
+  .view-now-row{ display:flex; justify-content:space-between; font-size:14px; }
+  .view-now-row .dot{ width:8px; height:8px; border-radius:50%; background:#7FD858; display:inline-block; margin-right:8px; }
+  .view-now-empty{ font-size:13px; color:var(--off); font-style:italic; }
+
+  .view-day-card{
+    display:flex;
+    align-items:stretch;
+    background:var(--navy-2);
+    border:1px solid var(--off-line);
+    border-radius:12px;
+    margin-bottom:8px;
+    overflow:hidden;
+  }
+  .view-day-card.off{ opacity:0.45; }
+  .view-day-card.today{ border-color:var(--amber); }
+  .view-day-label{
+    width:56px; flex:0 0 56px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:var(--teal);
+    font-size:12px; font-weight:800; text-transform:uppercase;
+    color:var(--cream);
+  }
+  .view-day-card.today .view-day-label{ background:var(--amber); color:var(--navy); }
+  .view-day-body{ flex:1; padding:10px 14px; }
+  .view-shift-row{ display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:3px 0; }
+  .view-shift-row + .view-shift-row{ border-top:1px dashed var(--off-line); margin-top:4px; padding-top:6px; }
+  .view-shift-row .dot{ width:8px; height:8px; border-radius:50%; background:#7FD858; display:inline-block; margin-right:6px; }
+  .view-shift-time{ font-weight:700; }
+  .view-shift-tag{ font-size:10px; text-transform:uppercase; color:var(--amber); font-weight:800; margin-left:6px; }
+  .view-off-text{ font-size:13px; color:var(--off); font-style:italic; }
+  .view-day-total{
+    flex:0 0 52px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:800; color:var(--off);
+    border-left:1px solid var(--off-line);
+  }
+  .view-day-card.today .view-day-total{ color:var(--amber); }
+
+  .tl-axis{ display:flex; justify-content:space-between; font-size:10px; color:var(--off); padding:0 2px 8px; margin-left:64px; }
+  .tl-row{ margin-bottom:14px; }
+  .tl-row-top{ display:flex; align-items:center; }
+  .tl-label{ width:64px; flex:0 0 64px; font-size:13px; font-weight:800; color:var(--amber); }
+  .tl-track{ position:relative; flex:1; height:26px; background:var(--navy-2); border:1px solid var(--off-line); border-radius:6px; }
+  .tl-bar{ position:absolute; top:2px; bottom:2px; background:var(--amber); border-radius:4px; }
+  .tl-bar.tl-active{ background:#7FD858; }
+  .tl-now-line{ position:absolute; top:-3px; bottom:-3px; width:2px; background:#7FD858; z-index:2; }
+  .tl-caption{ font-size:11px; color:var(--off); margin:5px 0 0 68px; }
+  .tl-off-row{ display:flex; align-items:center; }
+  .tl-off-track{
+    flex:1; height:26px; border:1px solid var(--off-line); border-radius:6px;
+    background:repeating-linear-gradient(45deg, #0A1420, #0A1420 8px, #16263D 8px, #16263D 16px);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .tl-off-track span{ font-size:11px; color:var(--off); font-style:italic; background:var(--navy); padding:0 8px; border-radius:4px; }
+  .tl-delivery-chip{
+    position:absolute; top:2px; bottom:2px;
+    background:rgba(245,166,35,0.14); border:1px dashed var(--amber-dim); border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9.5px; font-weight:800; text-transform:uppercase; color:var(--amber);
+    padding:0 2px; overflow:hidden; white-space:nowrap; z-index:1;
+  }
+  /* ===== end ported viewing styles ===== */
+
   .pending-cover{
     border:1px dashed var(--amber-dim);
     border-radius:10px;
@@ -341,10 +482,13 @@
 <!-- EDITOR (hidden until logged in) -->
 <div id="editorArea" class="hidden">
 
-  <div class="row" id="editorTabs" style="gap:6px; margin-bottom:16px;">
+  <div class="row" id="editorTabs" style="gap:6px; margin-bottom:16px; flex-wrap:wrap;">
     <button class="btn secondary editor-tab-btn active" data-tab="shifts">Edit Shifts</button>
+    <button class="btn secondary editor-tab-btn" data-tab="staffview">Staff</button>
+    <button class="btn secondary editor-tab-btn" data-tab="dayview">Day</button>
+    <button class="btn secondary editor-tab-btn" data-tab="timelineview">Timeline</button>
     <button class="btn secondary editor-tab-btn" data-tab="report">Report</button>
-    <button class="btn secondary editor-tab-btn" data-tab="staff">Add Staff</button>
+    <button class="btn secondary editor-tab-btn" data-tab="addstaff">Add Staff</button>
     <button class="btn secondary editor-tab-btn" data-tab="pins">PINs</button>
   </div>
 
@@ -361,7 +505,6 @@
     <button class="strip-btn" id="weekNext">›</button>
   </div>
   <div id="weekStatus" class="week-status"></div>
-  <button class="btn danger" id="clearWeekBtn" style="margin-bottom:14px;">Clear custom changes for this week</button>
   <div id="defaultModeNote" class="sub hidden" style="text-align:center; margin-bottom:14px;">Editing the permanent recurring pattern — applies to every week that doesn't already have its own override.</div>
 
   <div class="strip" id="personStrip"></div>
@@ -393,6 +536,25 @@
 
   </div>
 
+  <div id="tab-staffview" class="tab-content hidden">
+    <div class="view-strip" id="viewWhoStrip"></div>
+    <div id="viewNowBanner1" class="view-hero now"></div>
+    <div id="viewHeroBanner" class="view-hero"></div>
+    <div id="viewPersonView"></div>
+  </div>
+
+  <div id="tab-dayview" class="tab-content hidden">
+    <div class="view-day-strip" id="viewDayStripA"></div>
+    <div id="viewDayHero" class="view-hero"></div>
+    <div id="viewStaffDayView"></div>
+  </div>
+
+  <div id="tab-timelineview" class="tab-content hidden">
+    <div class="view-day-strip" id="viewDayStripB"></div>
+    <div id="viewNowBanner2" class="view-hero now"></div>
+    <div id="viewTimelineView"></div>
+  </div>
+
   <div id="tab-report" class="tab-content hidden">
   <div class="card">
     <div style="font-size:13px; font-weight:800; color:var(--amber); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:10px;">Timesheet report</div>
@@ -413,7 +575,7 @@
   </div>
   </div>
 
-  <div id="tab-staff" class="tab-content hidden">
+  <div id="tab-addstaff" class="tab-content hidden">
   <div class="card">
     <div style="font-size:13px; font-weight:800; color:var(--amber); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:10px;">Add staff member</div>
     <div class="sub" style="margin-bottom:12px;">New person starts with a blank week (all days off). Add their shifts afterward the same way you edit anyone else's — pick them, pick a day, add shifts.</div>
@@ -518,6 +680,231 @@ document.getElementById('addStaffBtn').onclick = async () => {
   }
 };
 const DAYS = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+const DAY_FULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
+function todayIndex(){
+  const d = new Date().getDay();
+  return d === 0 ? 6 : d - 1;
+}
+const TODAY = todayIndex();
+
+const WIN_START = 5 * 60, WIN_END = 22 * 60, WIN_RANGE = WIN_END - WIN_START;
+
+let viewPerson = STAFF[0];
+let viewDayIdx = TODAY;
+
+function renderViewWhoStrip(){
+  const el = document.getElementById('viewWhoStrip');
+  el.innerHTML = '';
+  STAFF.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'view-who-btn' + (name === viewPerson ? ' active' : '');
+    btn.textContent = name;
+    btn.onclick = () => { viewPerson = name; renderViewStaffTab(); };
+    el.appendChild(btn);
+  });
+}
+
+function findViewNextShift(person){
+  const days = DATA[person];
+  for (let offset = 1; offset <= 7; offset++){
+    const idx = (TODAY + offset) % 7;
+    const day = days[idx];
+    if (!day.off && day.shifts && day.shifts.length){
+      return { dayIdx: idx, day };
+    }
+  }
+  return null;
+}
+
+function renderViewHero(){
+  const hero = document.getElementById('viewHeroBanner');
+  const weekTotal = DATA[viewPerson].reduce((s,d)=>s+d.total,0);
+  const next = findViewNextShift(viewPerson);
+
+  let bigText, subText;
+  if (!next){
+    bigText = "No shifts this week";
+    subText = "Enjoy the time off";
+  } else {
+    const shift = next.day.shifts[0];
+    const timeStr = shift.tag ? shift.tag : `${shift.start} – ${shift.end}`;
+    bigText = `${DAY_FULL[next.dayIdx]}, ${timeStr}`;
+    subText = next.day.shifts.length > 1 ? `+ ${next.day.shifts.length - 1} more shift on this day` : "Next shift";
+  }
+
+  hero.innerHTML = `
+    <div class="eyebrow">${viewPerson}'s next shift</div>
+    <div class="big">${bigText}</div>
+    <div class="sub">${subText}</div>
+    <div class="weektotal"><span>Total this week</span><b>${weekTotal}h</b></div>
+  `;
+}
+
+function renderViewNowBanner(elId){
+  const el = document.getElementById(elId);
+  const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+  const onNow = [];
+  STAFF.forEach(name => {
+    const day = DATA[name][TODAY];
+    if (day.off || !day.shifts) return;
+    day.shifts.forEach(s => {
+      const start = toMinutes(s.start), end = toMinutes(s.end);
+      if (start === null || end === null) return;
+      if (nowMin >= start && nowMin < end) onNow.push({ name, until: s.end });
+    });
+  });
+  if (onNow.length === 0){
+    el.innerHTML = `<div class="eyebrow">Working right now</div><div class="view-now-empty">Nobody currently on shift</div>`;
+    return;
+  }
+  const rows = onNow.map(p => `<div class="view-now-row"><span><span class="dot"></span>${p.name}</span><span>till ${p.until}</span></div>`).join('');
+  el.innerHTML = `<div class="eyebrow">Working right now</div><div class="view-now-list">${rows}</div>`;
+}
+
+function renderViewPersonView(){
+  const el = document.getElementById('viewPersonView');
+  el.innerHTML = '';
+  const days = DATA[viewPerson];
+  days.forEach((day, idx) => {
+    const card = document.createElement('div');
+    card.className = 'view-day-card' + (day.off ? ' off' : '') + (idx === TODAY ? ' today' : '');
+    let bodyHtml = '';
+    if (day.off){
+      bodyHtml = `<div class="view-off-text">Day off</div>`;
+    } else {
+      bodyHtml = day.shifts.map(s => {
+        const timeLabel = s.start === "—" ? '' : `<span class="view-shift-time">${s.start} – ${s.end}</span>`;
+        const tag = s.tag ? `<span class="view-shift-tag">${s.tag}</span>` : '';
+        return `<div class="view-shift-row"><span>${timeLabel}${tag}</span></div>`;
+      }).join('');
+    }
+    card.innerHTML = `
+      <div class="view-day-label">${DAYS[idx]}</div>
+      <div class="view-day-body">${bodyHtml}</div>
+      <div class="view-day-total">${day.off ? '–' : day.total + 'h'}</div>
+    `;
+    el.appendChild(card);
+  });
+}
+
+function renderViewDayStrips(){
+  ['viewDayStripA','viewDayStripB'].forEach(elId => {
+    const el = document.getElementById(elId);
+    el.innerHTML = '';
+    DAYS.forEach((d, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'view-day-btn' + (idx === viewDayIdx ? ' active' : '') + (idx === TODAY ? ' is-today' : '');
+      btn.textContent = d;
+      btn.onclick = () => { viewDayIdx = idx; renderViewDayTab(); renderViewTimelineTab(); };
+      el.appendChild(btn);
+    });
+  });
+}
+
+function renderViewDayHero(){
+  const el = document.getElementById('viewDayHero');
+  const dayTotal = STAFF.reduce((sum, name) => sum + DATA[name][viewDayIdx].total, 0);
+  const workingCount = STAFF.filter(name => !DATA[name][viewDayIdx].off).length;
+  el.innerHTML = `
+    <div class="eyebrow">${DAY_FULL[viewDayIdx]}</div>
+    <div class="big">${workingCount} of ${STAFF.length} staff working</div>
+    <div class="sub">${dayTotal}h scheduled across the team</div>
+  `;
+}
+
+function renderViewStaffDayView(){
+  const el = document.getElementById('viewStaffDayView');
+  el.innerHTML = '';
+  const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+  const isToday = viewDayIdx === TODAY;
+  STAFF.forEach(name => {
+    const day = DATA[name][viewDayIdx];
+    const card = document.createElement('div');
+    card.className = 'view-day-card' + (day.off ? ' off' : '');
+    let bodyHtml = '';
+    if (day.off){
+      bodyHtml = `<div class="view-off-text">Day off</div>`;
+    } else {
+      bodyHtml = day.shifts.map(s => {
+        const timeLabel = s.start === "—" ? '' : `<span class="view-shift-time">${s.start} – ${s.end}</span>`;
+        const tag = s.tag ? `<span class="view-shift-tag">${s.tag}</span>` : '';
+        const active = isToday && s.start !== "—" && nowMin >= toMinutes(s.start) && nowMin < toMinutes(s.end);
+        return `<div class="view-shift-row">${active ? '<span class="dot"></span>' : ''}<span>${timeLabel}${tag}</span></div>`;
+      }).join('');
+    }
+    card.innerHTML = `
+      <div class="view-day-label">${name}</div>
+      <div class="view-day-body">${bodyHtml}</div>
+      <div class="view-day-total">${day.off ? '–' : day.total + 'h'}</div>
+    `;
+    el.appendChild(card);
+  });
+}
+
+function renderViewTimelineView(){
+  const el = document.getElementById('viewTimelineView');
+  const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+  const isToday = viewDayIdx === TODAY;
+
+  let html = '<div class="tl-axis"><span>05:00</span><span>09:00</span><span>13:00</span><span>17:00</span><span>22:00</span></div>';
+
+  STAFF.forEach(name => {
+    const day = DATA[name][viewDayIdx];
+    if (day.off){
+      html += `<div class="tl-row"><div class="tl-off-row"><div class="tl-label">${name}</div><div class="tl-off-track"><span>Day off</span></div></div></div>`;
+      return;
+    }
+    const timedShifts = day.shifts.filter(s => s.start !== "—");
+    const untimedShifts = day.shifts.filter(s => s.start === "—");
+
+    let barsHtml = '';
+    timedShifts.forEach(s => {
+      const startMin = toMinutes(s.start), endMin = toMinutes(s.end);
+      const leftPct = Math.max(0, (startMin - WIN_START) / WIN_RANGE * 100);
+      const widthPct = Math.min(100 - leftPct, (endMin - startMin) / WIN_RANGE * 100);
+      const active = isToday && nowMin >= startMin && nowMin < endMin;
+      barsHtml += `<div class="tl-bar${active ? ' tl-active' : ''}" style="left:${leftPct}%; width:${widthPct}%;"></div>`;
+    });
+    let deliveryChipsHtml = '';
+    untimedShifts.forEach((s, i) => {
+      const chipWidthPct = Math.min(32, 100 / (timedShifts.length ? 3 : 1));
+      deliveryChipsHtml += `<div class="tl-delivery-chip" style="left:${i * (chipWidthPct + 1)}%; width:${chipWidthPct}%;">${s.tag}</div>`;
+    });
+    let nowLineHtml = '';
+    if (isToday && nowMin >= WIN_START && nowMin <= WIN_END){
+      const nowPct = (nowMin - WIN_START) / WIN_RANGE * 100;
+      nowLineHtml = `<div class="tl-now-line" style="left:${nowPct}%;"></div>`;
+    }
+    const captionParts = timedShifts.map(s => `${s.start}–${s.end}`);
+    html += `
+      <div class="tl-row">
+        <div class="tl-row-top">
+          <div class="tl-label">${name}</div>
+          <div class="tl-track">${deliveryChipsHtml}${barsHtml}${nowLineHtml}</div>
+        </div>
+        <div class="tl-caption">${captionParts.join(' &nbsp;+&nbsp; ')}</div>
+      </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function renderViewStaffTab(){
+  renderViewWhoStrip();
+  renderViewNowBanner('viewNowBanner1');
+  renderViewHero();
+  renderViewPersonView();
+}
+function renderViewDayTab(){
+  renderViewDayStrips();
+  renderViewDayHero();
+  renderViewStaffDayView();
+}
+function renderViewTimelineTab(){
+  renderViewDayStrips();
+  renderViewNowBanner('viewNowBanner2');
+  renderViewTimelineView();
+}
 
 // Fallback seed data — matches the main app's recurring pattern. Used as
 // the starting point for any week that doesn't have its own override yet.
@@ -603,15 +990,12 @@ function renderWeekLabel(){
 
 function renderWeekStatus(){
   const el = document.getElementById('weekStatus');
-  const clearBtn = document.getElementById('clearWeekBtn');
   if (isCustomWeek){
     el.className = 'week-status custom';
     el.textContent = 'This week has custom changes';
-    clearBtn.classList.remove('hidden');
   } else {
     el.className = 'week-status default';
     el.textContent = 'Showing the default recurring pattern';
-    clearBtn.classList.add('hidden');
   }
 }
 
@@ -1213,9 +1597,12 @@ async function refreshWeek(){
 
 function setEditorTab(tab){
   document.querySelectorAll('.editor-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  ['shifts','report','staff','pins'].forEach(t => {
+  ['shifts','staffview','dayview','timelineview','report','addstaff','pins'].forEach(t => {
     document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
   });
+  if (tab === 'staffview') renderViewStaffTab();
+  if (tab === 'dayview') renderViewDayTab();
+  if (tab === 'timelineview') renderViewTimelineTab();
 }
 
 document.querySelectorAll('.editor-tab-btn').forEach(btn => {
@@ -1228,7 +1615,6 @@ function setEditingMode(mode){
 
   document.getElementById('weekNav').classList.toggle('hidden', mode !== 'week');
   document.getElementById('weekStatus').classList.toggle('hidden', mode !== 'week');
-  document.getElementById('clearWeekBtn').classList.toggle('hidden', mode !== 'week');
   document.getElementById('defaultModeNote').classList.toggle('hidden', mode !== 'default');
 
   if (mode === 'default'){
@@ -1253,19 +1639,6 @@ document.getElementById('weekPrev').onclick = async () => {
 document.getElementById('weekNext').onclick = async () => {
   viewedWeekStart = new Date(viewedWeekStart); viewedWeekStart.setDate(viewedWeekStart.getDate() + 7);
   await refreshWeek();
-};
-document.getElementById('clearWeekBtn').onclick = async () => {
-  const key = weekKey(viewedWeekStart);
-  const statusEl = document.getElementById('saveStatus');
-  try {
-    await setDoc(doc(db, 'rota', `week_${key}`), { json: null, cleared: true });
-    statusEl.className = 'status ok';
-    statusEl.textContent = 'Custom changes cleared for this week.';
-    await refreshWeek();
-  } catch(e) {
-    statusEl.className = 'status err';
-    statusEl.textContent = 'Could not clear: ' + e.message;
-  }
 };
 
 // ---------- STRIPS ----------

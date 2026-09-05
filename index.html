@@ -9,14 +9,6 @@
 <meta name="apple-mobile-web-app-title" content="Fordham Service Station">
 <meta name="theme-color" content="#0F1B2D">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F1B2D'/><text x='50' y='64' font-size='54' text-anchor='middle' fill='%23F5A623' font-family='Arial' font-weight='900'>R</text></svg>">
-<link rel="manifest" href="data:application/manifest+json,{
-  %22name%22: %22Forecourt Rota%22,
-  %22short_name%22: %22Rota%22,
-  %22start_url%22: %22.%22,
-  %22display%22: %22standalone%22,
-  %22background_color%22: %22%230F1B2D%22,
-  %22theme_color%22: %22%230F1B2D%22
-}">
 <style>
   :root{
     --navy:#0F1B2D;
@@ -27,6 +19,8 @@
     --cream:#F7F5F0;
     --off:#8AA0AE;
     --off-line:#28394D;
+    --green:#7FD858;
+    --red:#E5556B;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0; height:100%;}
@@ -38,519 +32,225 @@
     padding-bottom:40px;
     min-height:100vh;
   }
-  .topbar{
-    padding:14px 20px 10px;
-    display:flex;
-    align-items:baseline;
-    justify-content:center;
-    border-bottom:1px solid var(--off-line);
-  }
-  .topbar h1{
-    font-size:19px;
-    font-weight:800;
-    letter-spacing:0.05em;
-    text-transform:uppercase;
-    margin:0;
-  }
-  .today-date{
-    font-size:14px;
-    color:var(--off);
-    font-weight:700;
-  }
-  .sync-status{
-    font-size:10px;
-    color:var(--off);
-    margin-left:8px;
-    display:inline-flex;
-    align-items:center;
-    gap:4px;
-  }
-  .sync-status .dot{
-    width:6px; height:6px; border-radius:50%;
-    background:var(--off);
-    display:inline-block;
-  }
-  .sync-status.synced .dot{background:#7FD858;}
-  .sync-status.synced{color:#7FD858;}
-  .topbar .amber{color:var(--amber);}
-  .topbar .week{font-size:12px; color:var(--off);}
+  button{ font-family:inherit; cursor:pointer; }
 
-  .who-strip{
-    display:flex;
-    gap:8px;
-    overflow-x:auto;
-    padding:14px 16px;
-    border-bottom:1px solid var(--off-line);
-  }
-  .who-strip::-webkit-scrollbar{display:none;}
-  .who-btn{
-    flex:0 0 auto;
-    padding:9px 16px;
-    border-radius:100px;
-    border:1px solid var(--off-line);
-    background:var(--navy-2);
-    color:var(--off);
-    font-size:13px;
-    font-weight:700;
-    letter-spacing:0.02em;
-  }
-  .who-btn.active{
-    background:var(--amber);
-    border-color:var(--amber);
-    color:var(--navy);
-  }
-  .who-btn.all{font-style:italic;}
-
-  .hero{
-    margin:16px 16px 6px;
-    background:linear-gradient(135deg, var(--teal), var(--navy-2));
-    border:1px solid var(--off-line);
-    border-radius:14px;
-    padding:18px 18px 16px;
-  }
-  .hero .eyebrow{
-    font-size:11px;
-    text-transform:uppercase;
-    letter-spacing:0.12em;
-    color:var(--amber);
-    font-weight:800;
-    margin-bottom:6px;
-  }
-  .hero .big{
-    font-size:26px;
-    font-weight:800;
-    line-height:1.15;
-  }
-  .hero .sub{
-    font-size:13px;
-    color:var(--off);
-    margin-top:4px;
-  }
-  .hero .weektotal{
-    margin-top:12px;
-    padding-top:12px;
-    border-top:1px solid var(--off-line);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    font-size:13px;
-    color:var(--off);
-  }
-  .hero .weektotal b{
-    color:var(--cream);
-    font-size:20px;
-    font-weight:800;
-  }
-
-  .now-hero{
-    background:linear-gradient(135deg, #1B2E1A, var(--navy-2));
-    border-color:#3A5A34;
-  }
-  .change-banner{
-    margin:16px 16px 6px;
-    background:linear-gradient(135deg, #3A2E12, var(--navy-2));
-    border:1px solid var(--amber-dim);
-    border-radius:14px;
-    padding:12px 14px;
-  }
-  .change-item{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:10px;
-    font-size:13px;
-    padding:4px 0;
-  }
-  .change-item + .change-item{
-    border-top:1px dashed var(--off-line);
-    margin-top:6px;
-    padding-top:8px;
-  }
-  .change-item .change-text{color:var(--cream);}
-  .change-item .change-text b{color:var(--amber);}
-  .change-item .close-btn{
-    background:none;
-    border:none;
-    color:var(--off);
-    font-size:16px;
-    line-height:1;
-    padding:0 2px;
-  }
-  .now-hero .eyebrow{color:#7FD858;}
-  .now-list{display:flex; flex-direction:column; gap:8px; margin-top:4px;}
-  .now-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    font-size:14px;
-  }
-  .now-row .dot{
-    width:8px; height:8px; border-radius:50%;
-    background:#7FD858;
-    display:inline-block;
-    margin-right:8px;
-  }
-  .shift-row .dot{
-    width:8px; height:8px; border-radius:50%;
-    background:#7FD858;
-    display:inline-block;
-    margin-right:6px;
-  }
-  .now-row .until{color:var(--off); font-size:13px;}
-  .now-empty{font-size:14px; color:var(--off); font-style:italic;}
-
-  .day-list{padding:6px 16px 10px;}
-  .day-card{
-    display:flex;
-    align-items:stretch;
-    background:var(--navy-2);
-    border:1px solid var(--off-line);
-    border-radius:12px;
-    margin-bottom:8px;
-    overflow:hidden;
-  }
-  .day-card.off{opacity:0.45;}
-  .day-card.today{border-color:var(--amber);}
-  .day-label{
-    width:56px;
-    flex:0 0 56px;
+  /* ---------- Login screen ---------- */
+  #loginScreen{
     display:flex;
     flex-direction:column;
     align-items:center;
-    justify-content:center;
-    background:var(--teal);
-    font-size:12px;
+    padding:60px 24px 24px;
+    text-align:center;
+  }
+  .login-title{
+    font-size:22px;
     font-weight:800;
     text-transform:uppercase;
-    letter-spacing:0.05em;
+    letter-spacing:0.04em;
+  }
+  .login-title .amber{ color:var(--amber); }
+  .login-sub{
+    font-size:16px;
+    color:var(--off);
+    margin:10px 0 28px;
+  }
+  .pin-dots{
+    display:flex;
+    gap:16px;
+    margin-bottom:32px;
+  }
+  .pin-dot{
+    width:20px; height:20px;
+    border-radius:50%;
+    border:2px solid var(--off-line);
+    background:transparent;
+  }
+  .pin-dot.filled{ background:var(--amber); border-color:var(--amber); }
+  .keypad{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:14px;
+    width:100%;
+    max-width:320px;
+  }
+  .key-btn{
+    background:var(--navy-2);
+    border:1px solid var(--off-line);
     color:var(--cream);
+    font-size:28px;
+    font-weight:700;
+    border-radius:16px;
+    padding:22px 0;
   }
-  .day-card.today .day-label{background:var(--amber); color:var(--navy);}
-  .day-body{
-    flex:1;
-    padding:10px 14px;
+  .key-btn:active{ background:var(--teal); }
+  .key-btn.wide{ font-size:16px; font-weight:800; color:var(--off); }
+  .login-status{
+    margin-top:20px;
+    font-size:15px;
+    min-height:20px;
   }
-  .shift-row{
+  .login-status.err{ color:var(--red); }
+
+  /* ---------- Home screen ---------- */
+  #homeScreen{ padding:0 16px 30px; }
+  .top-header{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    font-size:14px;
-    padding:3px 0;
+    padding:18px 0 14px;
+    border-bottom:1px solid var(--off-line);
+    margin-bottom:14px;
   }
-  .shift-row + .shift-row{border-top:1px dashed var(--off-line); margin-top:4px; padding-top:6px;}
-  .shift-time{font-weight:700;}
-
-  .log-time-btn{
-    background:none;
+  .hi-name{
+    font-size:20px;
+    font-weight:800;
+  }
+  .hi-name .amber{ color:var(--amber); }
+  #switchUserBtn{
+    background:var(--navy-2);
     border:1px solid var(--off-line);
     color:var(--off);
-    font-size:10px;
-    font-weight:700;
-    padding:4px 8px;
-    border-radius:6px;
-  }
-  .shift-row.logged{
-    background:rgba(127,216,88,0.08);
-    border-radius:6px;
-    padding:6px 6px 6px 8px;
-    margin:-6px -6px 0 -8px;
-  }
-  .shift-row.logged .log-time-btn{
-    border-color:#3A5A34;
-    color:#7FD858;
-  }
-    border-color:var(--amber);
-    color:var(--navy);
-  }
-  .log-time-panel{
-    background:var(--navy);
-    border:1px solid var(--off-line);
-    border-radius:8px;
-    padding:10px;
-    margin-top:6px;
-  }
-  .logged-note{
-    font-size:11px;
-    color:var(--green);
-    margin-bottom:8px;
-  }
-  .log-row{
-    display:flex;
-    gap:6px;
-    margin-bottom:8px;
-  }
-  .log-pin-input{
-    flex:0 0 60px;
-    background:var(--navy-2);
-    border:1px solid var(--off-line);
-    color:var(--cream);
-    padding:8px;
-    border-radius:6px;
     font-size:13px;
-    text-align:center;
+    font-weight:700;
+    padding:9px 14px;
+    border-radius:100px;
   }
-  .log-unlock-btn{
-    flex:1;
-    background:var(--teal);
-    border:1px solid var(--amber-dim);
+
+  .hero{
+    background:linear-gradient(135deg, var(--teal), var(--navy-2));
+    border:1px solid var(--off-line);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .hero.now{
+    background:linear-gradient(135deg, #1B2E1A, var(--navy-2));
+    border-color:#3A5A34;
+  }
+  .hero .eyebrow{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
     color:var(--amber);
     font-weight:800;
-    font-size:12px;
-    border-radius:6px;
+    margin-bottom:8px;
   }
-  .log-fields.hidden{display:none;}
-  .log-start-input, .log-end-input{
-    flex:1;
+  .hero.now .eyebrow{ color:var(--green); }
+  .now-row{ display:flex; justify-content:space-between; font-size:16px; padding:3px 0; }
+  .now-row .dot{ width:9px; height:9px; border-radius:50%; background:var(--green); display:inline-block; margin-right:8px; }
+  .now-empty{ font-size:15px; color:var(--off); font-style:italic; }
+
+  .section-title{
+    font-size:15px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--amber);
+    margin:20px 0 10px;
+  }
+
+  .shift-card{
     background:var(--navy-2);
     border:1px solid var(--off-line);
-    color:var(--cream);
-    padding:8px;
-    border-radius:6px;
-    font-size:13px;
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:12px;
   }
-  .log-save-btn{
+  .shift-card.logged{ border-color:#3A5A34; background:rgba(127,216,88,0.06); }
+  .shift-card-time{ font-size:20px; font-weight:800; margin-bottom:4px; }
+  .shift-card-tag{ font-size:13px; color:var(--amber); font-weight:800; text-transform:uppercase; }
+  .logged-display{
+    font-size:16px;
+    color:var(--green);
+    font-weight:700;
+    margin-top:8px;
+  }
+  .big-btn{
     width:100%;
     background:var(--amber);
     color:var(--navy);
     border:none;
-    padding:8px;
-    border-radius:6px;
+    padding:18px;
+    border-radius:14px;
+    font-size:18px;
     font-weight:800;
-    font-size:12px;
+    margin-top:10px;
   }
-  .log-status{
-    font-size:11px;
-    text-align:center;
-    margin-top:6px;
-    min-height:14px;
+  .big-btn.secondary{
+    background:var(--teal);
+    color:var(--cream);
+    border:1px solid var(--amber-dim);
   }
-  .log-status.ok{color:var(--green);}
-  .log-status.err{color:var(--red, #E5556B);}
+  .no-shift-text{ font-size:15px; color:var(--off); font-style:italic; }
 
-  .shift-tag{
-    font-size:10px;
-    text-transform:uppercase;
-    letter-spacing:0.06em;
-    color:var(--amber);
-    font-weight:800;
-    margin-left:6px;
+  .log-panel{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px dashed var(--off-line);
   }
-  .off-text{font-size:13px; color:var(--off); font-style:italic;}
-  .day-total{
-    flex:0 0 52px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:14px;
-    font-weight:800;
+  .log-panel label{
+    display:block;
+    font-size:13px;
     color:var(--off);
-    border-left:1px solid var(--off-line);
-  }
-  .day-card.today .day-total{color:var(--amber);}
-
-  .grid-wrap{
-    padding:12px 12px 20px;
-    overflow-x:auto;
-  }
-  table{
-    border-collapse:collapse;
-    width:100%;
-    min-width:0;
-    table-layout:fixed;
-    font-size:12.5px;
-  }
-  th,td{
-    border:1px solid var(--off-line);
-    padding:10px 6px;
-    text-align:center;
-    vertical-align:middle;
-    background:var(--navy-2);
-    color:var(--cream);
-    font-weight:700;
-    line-height:1.45;
-    overflow-wrap:break-word;
-    hyphens:auto;
-  }
-  th{
-    background:var(--teal);
-    text-transform:uppercase;
-    font-size:11px;
-    letter-spacing:0.05em;
-    color:var(--cream);
-  }
-  td.name-cell{
-    background:var(--teal);
-    font-weight:800;
-    color:var(--amber);
-    position:sticky;
-    left:0;
-    z-index:1;
-  }
-  th:first-child{
-    position:sticky;
-    left:0;
-    z-index:2;
-  }
-  td.off-cell{background:#0A1420; color:var(--off); font-weight:400;}
-  td.total-cell{font-weight:800; background:var(--teal); color:var(--amber);}
-  .grid-total-row td{background:#0A1420; font-weight:800; color:var(--cream);}
-  .grid-total-row td.name-cell{background:#0A1420; color:var(--cream);}
-  td b.tag-label{
-    color:var(--amber);
-    font-size:11px;
     text-transform:uppercase;
     letter-spacing:0.03em;
-    display:block;
-  }
-
-  .scroll-hint{
-    text-align:center;
-    font-size:11px;
-    color:var(--off);
-    padding:8px 0 0;
-  }
-
-  .footer-toggle{
-    text-align:center;
-    padding:10px;
-  }
-  .footer-toggle button{
-    background:none;
-    border:1px solid var(--off-line);
-    color:var(--off);
-    padding:8px 16px;
-    border-radius:100px;
-    font-size:12px;
     font-weight:700;
+    margin-bottom:6px;
   }
-  .hidden{display:none !important;}
-
-  .day-strip{
-    display:flex;
-    gap:4px;
-    padding:10px 8px;
-    border-bottom:1px solid var(--off-line);
-  }
-  .day-btn{
+  .log-panel .row{ display:flex; gap:10px; margin-bottom:14px; }
+  .log-panel input[type=time]{
     flex:1;
-    padding:8px 2px;
-    border-radius:8px;
+    background:var(--navy);
     border:1px solid var(--off-line);
-    background:var(--navy-2);
-    color:var(--off);
-    font-size:11.5px;
-    font-weight:700;
-    letter-spacing:0.01em;
-  }
-  .day-btn.active{
-    background:var(--amber);
-    border-color:var(--amber);
-    color:var(--navy);
-  }
-  .day-btn.is-today::after{
-    content:" •";
-  }
-
-  .view-switch{
-    display:flex;
-    gap:8px;
-    margin:14px 16px 4px;
-  }
-  .switch-btn{
-    flex:1;
-    background:var(--navy-2);
-    border:1px solid var(--off-line);
-    color:var(--off);
-    font-size:13px;
-    font-weight:700;
-    padding:11px 6px;
+    color:var(--cream);
+    padding:14px;
     border-radius:10px;
+    font-size:18px;
   }
-  .switch-btn.active{
-    background:var(--amber);
-    border-color:var(--amber);
-    color:var(--navy);
-  }
+  .log-status{ font-size:14px; text-align:center; margin-top:10px; min-height:18px; }
+  .log-status.ok{ color:var(--green); }
+  .log-status.err{ color:var(--red); }
 
-  .timeline-wrap{padding:18px 16px 10px;}
-
-  .month-wrap{padding:14px 16px 20px;}
+  /* ---------- Month view ---------- */
   .month-nav{
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:4px 0 10px;
+    margin:6px 0 12px;
   }
   .month-nav-btn{
     background:var(--navy-2);
     border:1px solid var(--off-line);
     color:var(--cream);
-    width:36px;
-    height:36px;
-    border-radius:8px;
-    font-size:18px;
-    font-weight:800;
-  }
-  .month-label{
-    font-size:16px;
-    font-weight:800;
-    letter-spacing:0.02em;
-  }
-  .week-nav{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:10px 16px 4px;
-    border-bottom:1px solid var(--off-line);
-  }
-  .week-nav-btn{
-    background:var(--navy-2);
-    border:1px solid var(--off-line);
-    color:var(--cream);
-    width:30px;
-    height:30px;
-    flex:0 0 30px;
-    border-radius:8px;
-    font-size:16px;
-    font-weight:800;
-  }
-  .week-label{
-    flex:1;
-    font-size:13px;
-    font-weight:700;
-    color:var(--off);
-    text-align:center;
-  }
-  .week-label b{color:var(--amber);}
-
-  .month-note{
-    font-size:11px;
-    color:var(--off);
-    text-align:center;
-    margin-bottom:8px;
-    font-style:italic;
-  }
-  .month-total{
-    display:flex;
-    justify-content:space-between;
-    align-items:baseline;
-    background:var(--teal);
-    border:1px solid var(--off-line);
+    width:40px; height:40px;
     border-radius:10px;
-    padding:10px 14px;
-    margin-bottom:12px;
-    font-size:13px;
-    color:var(--off);
-  }
-  .month-total b{
-    color:var(--amber);
     font-size:20px;
     font-weight:800;
   }
+  .month-label{ font-size:17px; font-weight:800; }
+
+  .month-total-card{
+    background:var(--teal);
+    border:1px solid var(--off-line);
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+  .month-total-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:15px;
+  }
+  .month-total-row + .month-total-row{ margin-top:6px; }
+  .month-total-row b{ font-size:19px; }
+  .month-total-row .over{ color:var(--red); }
+  .month-total-row .under{ color:#FFD966; }
+
   .month-grid{
     display:grid;
     grid-template-columns:repeat(7, 1fr);
-    gap:5px;
+    gap:4px;
   }
   .month-weekday{
     text-align:center;
@@ -561,250 +261,87 @@
     padding-bottom:4px;
   }
   .month-cell{
-    aspect-ratio:1;
+    aspect-ratio:0.85;
     border:1px solid var(--off-line);
-    border-radius:8px;
+    border-radius:6px;
     background:var(--navy-2);
     display:flex;
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    padding:4px 2px;
+    padding:2px 1px;
   }
-  .month-cell.empty{
-    border-color:transparent;
-    background:none;
-  }
-  .month-cell.off-day{
-    background:#0A1420;
-  }
-  .month-cell.is-today{
-    border-color:var(--amber);
-    border-width:2px;
-  }
-  .month-date{
-    font-size:12px;
-    font-weight:700;
-    color:var(--off);
-  }
-  .month-cell.working .month-date{color:var(--cream);}
-  .month-hours{
+  .month-cell.empty{ border-color:transparent; background:none; }
+  .month-cell.off-day{ background:#0A1420; }
+  .month-cell.is-today{ border-color:var(--amber); border-width:2px; }
+  .month-date{ font-size:10px; font-weight:700; color:var(--off); }
+  .month-cell.working .month-date{ color:var(--cream); }
+  .month-cell-nums{ font-size:8.5px; line-height:1.3; text-align:center; margin-top:1px; }
+  .month-cell-nums .sch{ color:var(--off); }
+  .month-cell-nums .log{ font-weight:800; }
+  .month-cell-nums .log.over{ color:var(--red); }
+  .month-cell-nums .log.under{ color:#FFD966; }
+  .month-cell-nums .log.match{ color:var(--green); }
+  .month-legend{
     font-size:11px;
-    font-weight:800;
-    color:var(--amber);
-    margin-top:2px;
-  }
-  .month-cell.off-day .month-hours{
     color:var(--off);
-    font-weight:400;
-    font-style:italic;
-    font-size:9px;
-  }
-
-  #reportPeriodStrip{
-    display:flex;
-    gap:8px;
-  }
-  .report-period-btn{
-    flex:1;
-    padding:9px;
-    border-radius:10px;
-    border:1px solid var(--off-line);
-    background:var(--navy-2);
-    color:var(--off);
-    font-size:13px;
-    font-weight:700;
-  }
-  .report-period-btn.active{
-    background:var(--amber);
-    border-color:var(--amber);
-    color:var(--navy);
-  }
-  .report-table{
-    width:100%;
-    border-collapse:collapse;
-    font-size:13px;
-  }
-  .report-table th, .report-table td{
-    border:1px solid var(--off-line);
-    padding:8px 6px;
     text-align:center;
+    margin-top:10px;
   }
-  .report-table th{
-    background:var(--teal);
-    font-size:11px;
-    text-transform:uppercase;
-  }
-  .report-table td.name-cell{
-    background:var(--navy-2);
-    color:var(--amber);
-    font-weight:800;
-    text-align:left;
-    padding-left:10px;
-  }
-  .report-variance.pos{color:var(--green, #7FD858);}
-  .report-variance.neg{color:var(--red, #E5556B);}
-  #emailReportBtn{
-    background:var(--amber);
-    color:var(--navy);
-    border:none;
-    font-weight:800;
-    font-size:14px;
-    padding:12px;
-    border-radius:10px;
-  }
-  .tl-axis{
-    display:flex;
-    justify-content:space-between;
-    font-size:10px;
-    color:var(--off);
-    padding:0 2px 8px;
-    margin-left:64px;
-  }
-  .tl-row{margin-bottom:14px;}
-  .tl-row-top{
-    display:flex;
-    align-items:center;
-  }
-  .tl-label{
-    width:64px;
-    flex:0 0 64px;
-    font-size:13px;
-    font-weight:800;
-    color:var(--amber);
-  }
-  .tl-track{
-    position:relative;
-    flex:1;
-    height:26px;
-    background:var(--navy-2);
-    border:1px solid var(--off-line);
-    border-radius:6px;
-  }
-  .tl-bar{
-    position:absolute;
-    top:2px;
-    bottom:2px;
-    background:var(--amber);
-    border-radius:4px;
-  }
-  .tl-bar.tl-active{
-    background:#7FD858;
-  }
-  .tl-now-line{
-    position:absolute;
-    top:-3px;
-    bottom:-3px;
-    width:2px;
-    background:#7FD858;
-    z-index:2;
-  }
-  .tl-caption{
-    font-size:11px;
-    color:var(--off);
-    margin:5px 0 0 68px;
-  }
-  .tl-off-row{
-    display:flex;
-    align-items:center;
-  }
-  .tl-off-track{
-    flex:1;
-    height:26px;
-    border:1px solid var(--off-line);
-    border-radius:6px;
-    background:repeating-linear-gradient(
-      45deg,
-      #0A1420,
-      #0A1420 8px,
-      #16263D 8px,
-      #16263D 16px
-    );
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-  .tl-off-track span{
-    font-size:11px;
-    color:var(--off);
-    font-style:italic;
-    background:var(--navy);
-    padding:0 8px;
-    border-radius:4px;
-  }
-  .tl-off-track.tl-delivery-only{
-    background:var(--navy-2);
-    background-image:none;
-  }
-  .tl-delivery-chip{
-    position:absolute;
-    top:2px;
-    bottom:2px;
-    background:rgba(245,166,35,0.14);
-    border:1px dashed var(--amber-dim);
-    border-radius:4px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:9.5px;
-    font-weight:800;
-    text-transform:uppercase;
-    letter-spacing:0.02em;
-    color:var(--amber);
-    padding:0 2px;
-    overflow:hidden;
-    white-space:nowrap;
-    z-index:1;
-  }
+  .month-legend span{ font-weight:800; padding:0 3px; }
+
+  .hidden{ display:none !important; }
 </style>
 </head>
 <body>
 
-<div class="topbar" id="topbar">
-  <div id="todayDate" class="today-date"></div>
-  <div id="syncStatus" class="sync-status"></div>
-</div>
-
-<div class="week-nav">
-  <button id="weekPrev" class="week-nav-btn">‹</button>
-  <div id="weekLabel" class="week-label"></div>
-  <button id="weekNext" class="week-nav-btn">›</button>
-</div>
-
-<div class="view-switch">
-  <button class="switch-btn" data-view="person">Staff</button>
-  <button class="switch-btn" data-view="grid">Day</button>
-  <button class="switch-btn active" data-view="timeline">Timeline</button>
-  <button class="switch-btn" data-view="month">Month</button>
-</div>
-
-<div class="who-strip" id="whoStrip"></div>
-
-<div class="day-strip hidden" id="dayStrip"></div>
-
-<div id="nowBanner" class="hero now-hero"></div>
-
-<div id="changeBanner" class="change-banner hidden"></div>
-
-<div id="heroBanner" class="hero"></div>
-
-<div id="dayHero" class="hero hidden"></div>
-
-<div id="personView" class="day-list"></div>
-
-<div id="staffDayView" class="day-list hidden"></div>
-
-<div id="timelineView" class="timeline-wrap hidden"></div>
-
-<div id="monthView" class="month-wrap hidden">
-  <div class="month-nav">
-    <button id="monthPrev" class="month-nav-btn">‹</button>
-    <div id="monthLabel" class="month-label"></div>
-    <button id="monthNext" class="month-nav-btn">›</button>
+<div id="loginScreen">
+  <div class="login-title"><span class="amber">Fordham</span> Service Station</div>
+  <div class="login-sub">Enter your 4-digit PIN</div>
+  <div class="pin-dots" id="pinDots">
+    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
   </div>
-  <div class="month-note">Same weekly pattern repeats each week</div>
-  <div id="monthTotal" class="month-total"></div>
-  <div id="monthGrid" class="month-grid"></div>
+  <div class="keypad" id="keypad">
+    <button class="key-btn" data-key="1">1</button>
+    <button class="key-btn" data-key="2">2</button>
+    <button class="key-btn" data-key="3">3</button>
+    <button class="key-btn" data-key="4">4</button>
+    <button class="key-btn" data-key="5">5</button>
+    <button class="key-btn" data-key="6">6</button>
+    <button class="key-btn" data-key="7">7</button>
+    <button class="key-btn" data-key="8">8</button>
+    <button class="key-btn" data-key="9">9</button>
+    <button class="key-btn wide" data-key="clear">Clear</button>
+    <button class="key-btn" data-key="0">0</button>
+    <button class="key-btn wide" data-key="back">⌫</button>
+  </div>
+  <div class="login-status" id="loginStatus"></div>
+</div>
+
+<div id="homeScreen" class="hidden">
+  <div class="top-header">
+    <div class="hi-name">Hi <span class="amber" id="hiNameSpan"></span></div>
+    <button id="switchUserBtn">Switch user</button>
+  </div>
+
+  <div id="nowBanner" class="hero now"></div>
+
+  <div class="section-title">Log my time</div>
+  <div id="todayShiftsList"></div>
+
+  <div class="section-title">My month</div>
+  <div class="month-nav">
+    <button class="month-nav-btn" id="monthPrev">‹</button>
+    <div class="month-label" id="monthLabel"></div>
+    <button class="month-nav-btn" id="monthNext">›</button>
+  </div>
+  <div class="month-total-card" id="monthTotalCard"></div>
+  <div class="month-grid" id="monthGrid"></div>
+  <div class="month-legend">
+    <span style="color:var(--red);">Red</span> = worked more &nbsp;
+    <span style="color:#FFD966;">Yellow</span> = worked less &nbsp;
+    <span style="color:var(--green);">Green</span> = matched
+  </div>
 </div>
 
 <script type="module">
@@ -829,23 +366,25 @@ try {
 } catch(e) {
   console.warn('Firebase init failed, using local data only', e);
 }
+
 const DEFAULT_STAFF = ["Alex","Regi","Jude","Seran","Uday"];
 let STAFF = [...DEFAULT_STAFF];
 
 function blankWeek(){
   return Array.from({length:7}, () => ({ off: true, total: 0 }));
 }
-
 function hydrateStaffData(){
   STAFF.forEach(name => {
     if (!DEFAULT_DATA[name]) DEFAULT_DATA[name] = blankWeek();
     if (!DATA[name]) DATA[name] = blankWeek();
   });
 }
+
 const DAYS = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 const DAY_FULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const SHORT_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-// data[person][dayIndex] = { shifts:[{start,end,tag}], total, off:true/false }
 let DEFAULT_DATA = {
   Alex: [
     {shifts:[{start:"05:30",end:"13:00"},{start:"14:00",end:"17:00"}], total:10.5},
@@ -894,20 +433,19 @@ let DEFAULT_DATA = {
   ]
 };
 
-// DATA is whatever is currently on screen — the default recurring pattern,
-// unless the viewed week has its own saved override.
 let DATA = DEFAULT_DATA;
 
-function computeDayTotals(){
-  return DAYS.map((_, idx) => STAFF.reduce((sum, name) => sum + DATA[name][idx].total, 0));
-}
-
-// find "today" mapped to Mon-Sun index (0=Mon ... 6=Sun), based on device date
 function todayIndex(){
-  const d = new Date().getDay(); // 0=Sun
+  const d = new Date().getDay();
   return d === 0 ? 6 : d - 1;
 }
 const TODAY = todayIndex();
+
+function toMinutes(hhmm){
+  if (!hhmm || hhmm === "—") return null;
+  const [h,m] = hhmm.split(':').map(Number);
+  return h*60+m;
+}
 
 function mondayOf(date){
   const d = new Date(date);
@@ -917,563 +455,11 @@ function mondayOf(date){
   d.setHours(0,0,0,0);
   return d;
 }
-
-let viewedWeekStart = mondayOf(new Date());
-const SHORT_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
 function weekKey(date){
   const y = date.getFullYear();
   const m = String(date.getMonth()+1).padStart(2,'0');
   const d = String(date.getDate()).padStart(2,'0');
   return `${y}-${m}-${d}`;
-}
-
-function renderWeekLabel(){
-  const start = viewedWeekStart;
-  const end = new Date(start); end.setDate(start.getDate() + 6);
-  const isThisWeek = mondayOf(new Date()).getTime() === start.getTime();
-
-  const label = `${start.getDate()} ${SHORT_MONTHS[start.getMonth()]} – ${end.getDate()} ${SHORT_MONTHS[end.getMonth()]}`;
-  document.getElementById('weekLabel').innerHTML = isThisWeek ? `<b>This week</b> · ${label}` : label;
-}
-
-async function applyWeekData(){
-  if (!firebaseReady){ DATA = DEFAULT_DATA; hydrateStaffData(); refreshCurrentView(); return; }
-  try {
-    const snap = await getDoc(doc(fbDb, 'rota', `week_${weekKey(viewedWeekStart)}`));
-    if (snap.exists() && snap.data().json){
-      DATA = JSON.parse(snap.data().json);
-    } else {
-      DATA = DEFAULT_DATA;
-    }
-  } catch(e) {
-    console.warn('Could not load week override, showing default pattern', e);
-    DATA = DEFAULT_DATA;
-  }
-  hydrateStaffData();
-  refreshCurrentView();
-}
-
-document.getElementById('weekPrev').onclick = async () => {
-  viewedWeekStart = new Date(viewedWeekStart); viewedWeekStart.setDate(viewedWeekStart.getDate() - 7);
-  renderWeekLabel();
-  await applyWeekData();
-};
-document.getElementById('weekNext').onclick = async () => {
-  viewedWeekStart = new Date(viewedWeekStart); viewedWeekStart.setDate(viewedWeekStart.getDate() + 7);
-  renderWeekLabel();
-  await applyWeekData();
-};
-
-let currentPerson = STAFF[0];
-try {
-  const stored = localStorage.getItem('rota_person');
-  if (stored && STAFF.includes(stored)) currentPerson = stored;
-} catch(e) { /* localStorage unavailable in this context — fall back silently */ }
-let currentView = 'timeline'; // 'person' | 'grid' | 'timeline' | 'month'
-let currentDay = TODAY;
-
-const _now = new Date();
-let viewedMonth = _now.getMonth();
-let viewedYear = _now.getFullYear();
-const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-
-const WIN_START = 5 * 60;   // 05:00
-const WIN_END = 22 * 60;    // 22:00
-const WIN_RANGE = WIN_END - WIN_START;
-
-function renderDayStrip(){
-  const el = document.getElementById('dayStrip');
-  el.innerHTML = '';
-  DAYS.forEach((d, idx) => {
-    const btn = document.createElement('button');
-    btn.className = 'day-btn' + (idx === currentDay ? ' active' : '') + (idx === TODAY ? ' is-today' : '');
-    btn.textContent = d;
-    btn.onclick = () => { currentDay = idx; renderDayHero(); renderStaffDayView(); renderTimelineView(); renderDayStrip(); };
-    el.appendChild(btn);
-  });
-}
-
-function renderTimelineView(){
-  const el = document.getElementById('timelineView');
-  const nowMin = new Date().getHours()*60 + new Date().getMinutes();
-  const isToday = currentDay === TODAY;
-
-  let html = '<div class="tl-axis"><span>05:00</span><span>09:00</span><span>13:00</span><span>17:00</span><span>22:00</span></div>';
-
-  STAFF.forEach(name => {
-    const day = DATA[name][currentDay];
-    if (day.off){
-      html += `
-        <div class="tl-row">
-          <div class="tl-off-row">
-            <div class="tl-label">${name}</div>
-            <div class="tl-off-track"><span>Day off</span></div>
-          </div>
-        </div>`;
-      return;
-    }
-
-    const timedShifts = day.shifts.filter(s => s.start !== "—");
-    const untimedShifts = day.shifts.filter(s => s.start === "—");
-
-    let barsHtml = '';
-    timedShifts.forEach(s => {
-      const startMin = toMinutes(s.start);
-      const endMin = toMinutes(s.end);
-      const leftPct = Math.max(0, (startMin - WIN_START) / WIN_RANGE * 100);
-      const widthPct = Math.min(100 - leftPct, (endMin - startMin) / WIN_RANGE * 100);
-      const active = isToday && nowMin >= startMin && nowMin < endMin;
-      barsHtml += `<div class="tl-bar${active ? ' tl-active' : ''}" style="left:${leftPct}%; width:${widthPct}%;"></div>`;
-    });
-
-    // Delivery-style shifts have no fixed time, so they're always anchored
-    // at the start of the track as a labeled chip — consistent whether or
-    // not there's also a timed shift that day.
-    let deliveryChipsHtml = '';
-    untimedShifts.forEach((s, i) => {
-      const chipWidthPct = Math.min(32, 100 / (timedShifts.length ? 3 : 1));
-      deliveryChipsHtml += `<div class="tl-delivery-chip" style="left:${i * (chipWidthPct + 1)}%; width:${chipWidthPct}%;">${s.tag}</div>`;
-    });
-
-    let nowLineHtml = '';
-    if (isToday && nowMin >= WIN_START && nowMin <= WIN_END){
-      const nowPct = (nowMin - WIN_START) / WIN_RANGE * 100;
-      nowLineHtml = `<div class="tl-now-line" style="left:${nowPct}%;"></div>`;
-    }
-
-    const captionParts = timedShifts.map(s => `${s.start}–${s.end}`);
-
-    html += `
-      <div class="tl-row">
-        <div class="tl-row-top">
-          <div class="tl-label">${name}</div>
-          <div class="tl-track">${deliveryChipsHtml}${barsHtml}${nowLineHtml}</div>
-        </div>
-        <div class="tl-caption">${captionParts.join(' &nbsp;+&nbsp; ')}</div>
-      </div>`;
-  });
-
-  el.innerHTML = html;
-}
-
-function renderWhoStrip(){
-  const el = document.getElementById('whoStrip');
-  el.innerHTML = '';
-  STAFF.forEach(name => {
-    const btn = document.createElement('button');
-    btn.className = 'who-btn' + (name === currentPerson ? ' active' : '');
-    btn.textContent = name;
-    btn.onclick = () => { currentPerson = name; try { localStorage.setItem('rota_person', name); } catch(e) {} renderAll(); renderChangeBanner(); if (currentView === 'month') renderMonthView(); };
-    el.appendChild(btn);
-  });
-}
-
-function findNextShift(person){
-  const days = DATA[person];
-  for (let offset = 1; offset <= 7; offset++){
-    const idx = (TODAY + offset) % 7;
-    const day = days[idx];
-    if (!day.off && day.shifts && day.shifts.length){
-      return { dayIdx: idx, day, isToday: false };
-    }
-  }
-  return null;
-}
-
-function toMinutes(hhmm){
-  if (hhmm === "—") return null;
-  const [h,m] = hhmm.split(':').map(Number);
-  return h*60+m;
-}
-
-function renderNowBanner(){
-  const el = document.getElementById('nowBanner');
-  const now = new Date();
-  const nowMin = now.getHours()*60 + now.getMinutes();
-
-  const onNow = [];
-  STAFF.forEach(name => {
-    const day = DATA[name][TODAY];
-    if (day.off || !day.shifts) return;
-    day.shifts.forEach(s => {
-      const start = toMinutes(s.start);
-      const end = toMinutes(s.end);
-      if (start === null || end === null) return; // skip untimed (e.g. delivery) shifts
-      if (nowMin >= start && nowMin < end){
-        onNow.push({ name, until: s.end });
-      }
-    });
-  });
-
-  if (onNow.length === 0){
-    el.innerHTML = `
-      <div class="eyebrow">Working right now</div>
-      <div class="now-empty">Nobody currently on shift</div>
-    `;
-    return;
-  }
-
-  const rows = onNow.map(p => `
-    <div class="now-row">
-      <span><span class="dot"></span>${p.name}</span>
-      <span class="until">till ${p.until}</span>
-    </div>
-  `).join('');
-
-  el.innerHTML = `
-    <div class="eyebrow">Working right now</div>
-    <div class="now-list">${rows}</div>
-  `;
-}
-
-const dismissedChanges = new Set(); // session-only; resets on reload
-
-function getPersonChanges(person){
-  const changes = [];
-  DAYS.forEach((d, idx) => {
-    const def = DEFAULT_DATA[person][idx];
-    const cur = DATA[person][idx];
-    const defOff = !!def.off;
-    const curOff = !!cur.off;
-    const defShifts = defOff ? [] : (def.shifts || []);
-    const curShifts = curOff ? [] : (cur.shifts || []);
-
-    if (curOff && !defOff){
-      // Whole day vacated
-      changes.push({ key: `${person}-${idx}-off`, day: DAY_FULL[idx], text: `marked <b>day off</b> on ${DAY_FULL[idx]}` });
-    } else {
-      // Check for individually vacated shifts, even if still working other shifts that day
-      defShifts.forEach(ds => {
-        const stillThere = curShifts.some(cs => cs.start === ds.start && cs.end === ds.end && cs.tag === ds.tag);
-        if (!stillThere){
-          const label = ds.tag ? ds.tag : `${ds.start} – ${ds.end}`;
-          changes.push({ key: `${person}-${idx}-vacated-${ds.start}-${ds.end}-${ds.tag||''}`, day: DAY_FULL[idx], text: `no longer working <b>${label}</b> on ${DAY_FULL[idx]}` });
-        }
-      });
-    }
-
-    if (!curOff){
-      curShifts.forEach((s, si) => {
-        const matchesDefault = defShifts.some(ds => ds.start === s.start && ds.end === s.end && ds.tag === s.tag);
-        if (!matchesDefault){
-          const label = s.tag ? s.tag : `${s.start} – ${s.end}`;
-          changes.push({ key: `${person}-${idx}-cover-${si}-${s.start}-${s.end}-${s.tag||''}`, day: DAY_FULL[idx], text: `covering a shift on ${DAY_FULL[idx]}, <b>${label}</b>` });
-        }
-      });
-    }
-  });
-  return changes.filter(c => !dismissedChanges.has(c.key));
-}
-
-function renderChangeBanner(){
-  const el = document.getElementById('changeBanner');
-  if (currentView !== 'person'){ el.classList.add('hidden'); return; }
-  const changes = getPersonChanges(currentPerson);
-
-  if (changes.length === 0){
-    el.classList.add('hidden');
-    el.innerHTML = '';
-    return;
-  }
-
-  el.classList.remove('hidden');
-  el.innerHTML = changes.map(c => `
-    <div class="change-item">
-      <span class="change-text">${currentPerson} is ${c.text}</span>
-      <button class="close-btn" data-key="${c.key}">✕</button>
-    </div>
-  `).join('');
-
-  el.querySelectorAll('.close-btn').forEach(btn => {
-    btn.onclick = () => {
-      dismissedChanges.add(btn.dataset.key);
-      renderChangeBanner();
-    };
-  });
-}
-
-function renderHero(){
-  const hero = document.getElementById('heroBanner');
-  const weekTotal = DATA[currentPerson].reduce((s,d)=>s+d.total,0);
-  const next = findNextShift(currentPerson);
-
-  let bigText, subText;
-  if (!next){
-    bigText = "No shifts this week";
-    subText = "Enjoy the time off";
-  } else {
-    const shift = next.day.shifts[0];
-    const label = next.isToday ? "Today" : DAY_FULL[next.dayIdx];
-    const timeStr = shift.tag ? shift.tag : `${shift.start} – ${shift.end}`;
-    bigText = `${label}, ${timeStr}`;
-    subText = next.day.shifts.length > 1 ? `+ ${next.day.shifts.length - 1} more shift on this day` : "Next shift";
-  }
-
-  hero.innerHTML = `
-    <div class="eyebrow">${currentPerson}'s next shift</div>
-    <div class="big">${bigText}</div>
-    <div class="sub">${subText}</div>
-    <div class="weektotal">
-      <span>Total this week</span>
-      <b>${weekTotal}h</b>
-    </div>
-  `;
-}
-
-function dateForDayIdx(idx){
-  const d = new Date(viewedWeekStart);
-  d.setDate(d.getDate() + idx);
-  return d;
-}
-
-function timesheetDocId(person, idx, shiftIdx){
-  return `${person}_${weekKey(dateForDayIdx(idx))}_${shiftIdx}`;
-}
-
-const loggedTimesCache = {}; // docId -> {actualStart, actualEnd}
-
-async function fetchLoggedTime(docId){
-  if (loggedTimesCache[docId] !== undefined) return loggedTimesCache[docId];
-  try {
-    const snap = await getDoc(doc(fbDb, 'timesheets', docId));
-    loggedTimesCache[docId] = snap.exists() ? snap.data() : null;
-  } catch(e) {
-    loggedTimesCache[docId] = null;
-  }
-  return loggedTimesCache[docId];
-}
-
-function renderPersonView(){
-  const el = document.getElementById('personView');
-  el.innerHTML = '';
-  const days = DATA[currentPerson];
-
-  days.forEach((day, idx) => {
-    const card = document.createElement('div');
-    card.className = 'day-card' + (day.off ? ' off' : '') + (idx === TODAY ? ' today' : '');
-
-    let bodyHtml = '';
-    if (day.off){
-      bodyHtml = `<div class="off-text">Day off</div>`;
-    } else {
-      bodyHtml = day.shifts.map((s, si) => {
-        const timeLabel = s.start === "—" ? '' : `<span class="shift-time">${s.start} – ${s.end}</span>`;
-        const tag = s.tag ? `<span class="shift-tag">${s.tag}</span>` : '';
-        const docId = timesheetDocId(currentPerson, idx, si);
-        return `
-          <div class="shift-row">
-            <span>${timeLabel}${tag}</span>
-            <button class="log-time-btn" data-doc="${docId}" data-person="${currentPerson}" data-day="${idx}" data-shift="${si}" data-defstart="${s.start}" data-defend="${s.end}">Log time</button>
-          </div>
-          <div class="log-time-panel hidden" id="panel-${docId}"></div>
-        `;
-      }).join('');
-    }
-
-    card.innerHTML = `
-      <div class="day-label">${DAYS[idx]}</div>
-      <div class="day-body">${bodyHtml}</div>
-      <div class="day-total">${day.off ? '–' : day.total + 'h'}</div>
-    `;
-    el.appendChild(card);
-  });
-
-  el.querySelectorAll('.log-time-btn').forEach(btn => {
-    btn.onclick = () => toggleLogPanel(btn);
-  });
-
-  applyLoggedStatus(el);
-}
-
-async function applyLoggedStatus(container){
-  const btns = [...container.querySelectorAll('.log-time-btn')];
-  for (const btn of btns){
-    const docId = btn.dataset.doc;
-    const existing = await fetchLoggedTime(docId);
-    if (existing){
-      btn.textContent = 'Edit';
-      btn.closest('.shift-row').classList.add('logged');
-    }
-  }
-}
-
-async function toggleLogPanel(btn){
-  const docId = btn.dataset.doc;
-  const panel = document.getElementById(`panel-${docId}`);
-  const isHidden = panel.classList.contains('hidden');
-
-  // Close any other open panels
-  document.querySelectorAll('.log-time-panel').forEach(p => p.classList.add('hidden'));
-
-  if (!isHidden) return; // was open, now closed — done
-
-  const defStart = btn.dataset.defstart === "—" ? "" : btn.dataset.defstart;
-  const defEnd = btn.dataset.defend === "—" ? "" : btn.dataset.defend;
-
-  // Nothing about a previous log is shown until the correct PIN is entered —
-  // this is private to whoever logged it, not visible to other staff browsing.
-  panel.innerHTML = `
-    <div class="log-row">
-      <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="log-pin-input" placeholder="Your PIN">
-      <button class="log-unlock-btn">Unlock</button>
-    </div>
-    <div class="log-fields hidden">
-      <div class="log-row">
-        <input type="time" class="log-start-input" value="${defStart}" min="05:30" max="22:00">
-        <input type="time" class="log-end-input" value="${defEnd}" min="05:30" max="22:00">
-      </div>
-      <button class="log-save-btn">Save</button>
-    </div>
-    <div class="log-status"></div>
-  `;
-  panel.classList.remove('hidden');
-
-  let verifiedPerson = null;
-
-  panel.querySelector('.log-unlock-btn').onclick = async () => {
-    const statusEl = panel.querySelector('.log-status');
-    const pin = panel.querySelector('.log-pin-input').value.trim();
-    const person = btn.dataset.person;
-
-    if (!/^\d{4}$/.test(pin)){
-      statusEl.className = 'log-status err';
-      statusEl.textContent = 'Enter your 4-digit PIN.';
-      return;
-    }
-
-    statusEl.className = 'log-status';
-    statusEl.textContent = 'Checking…';
-
-    try {
-      const pinSnap = await getDoc(doc(fbDb, 'staff_pins', 'all'));
-      const pins = pinSnap.exists() ? pinSnap.data() : {};
-      if (!pins[person] || pins[person] !== pin){
-        statusEl.className = 'log-status err';
-        statusEl.textContent = 'Incorrect PIN.';
-        return;
-      }
-
-      verifiedPerson = person;
-      // Only now — after the correct PIN — do we reveal any prior entry
-      const existing = await fetchLoggedTime(docId);
-      if (existing){
-        panel.querySelector('.log-start-input').value = existing.actualStart;
-        panel.querySelector('.log-end-input').value = existing.actualEnd;
-      }
-      panel.querySelector('.log-fields').classList.remove('hidden');
-      panel.querySelector('.log-row').style.display = 'none'; // hide PIN row once unlocked
-      statusEl.className = 'log-status ok';
-      statusEl.textContent = existing ? 'Unlocked — showing your logged time.' : 'Unlocked.';
-    } catch(e) {
-      statusEl.className = 'log-status err';
-      statusEl.textContent = 'Could not verify: ' + e.message;
-    }
-  };
-
-  panel.querySelector('.log-save-btn').onclick = async () => {
-    const statusEl = panel.querySelector('.log-status');
-    const actualStart = panel.querySelector('.log-start-input').value;
-    const actualEnd = panel.querySelector('.log-end-input').value;
-
-    if (!verifiedPerson){
-      statusEl.className = 'log-status err';
-      statusEl.textContent = 'Unlock with your PIN first.';
-      return;
-    }
-    if (!actualStart || !actualEnd){
-      statusEl.className = 'log-status err';
-      statusEl.textContent = 'Enter both start and end time.';
-      return;
-    }
-
-    const SHOP_OPEN = 5*60 + 30, SHOP_CLOSE = 22*60;
-    const startMin = toMinutes(actualStart), endMin = toMinutes(actualEnd);
-    if (startMin < SHOP_OPEN || startMin > SHOP_CLOSE || endMin < SHOP_OPEN || endMin > SHOP_CLOSE){
-      const proceed = confirm(`This is outside shop hours (05:30–22:00). You entered ${actualStart}–${actualEnd}. Save anyway?`);
-      if (!proceed){
-        statusEl.className = 'log-status';
-        statusEl.textContent = 'Not saved.';
-        return;
-      }
-    }
-
-    const defStart = btn.dataset.defstart, defEnd = btn.dataset.defend;
-    if (defStart !== "—" && (actualStart !== defStart || actualEnd !== defEnd)){
-      const proceed = confirm(`You were scheduled ${defStart}–${defEnd}, but entered ${actualStart}–${actualEnd}. Is this correct?`);
-      if (!proceed){
-        statusEl.className = 'log-status';
-        statusEl.textContent = 'Not saved.';
-        return;
-      }
-    }
-
-    statusEl.className = 'log-status';
-    statusEl.textContent = 'Saving…';
-
-    try {
-      const idx = parseInt(btn.dataset.day);
-      const dateStr = weekKey(dateForDayIdx(idx));
-      await setDoc(doc(fbDb, 'timesheets', docId), {
-        person: verifiedPerson, date: dateStr,
-        scheduledStart: btn.dataset.defstart, scheduledEnd: btn.dataset.defend,
-        actualStart, actualEnd,
-        loggedAt: new Date().toISOString()
-      });
-      loggedTimesCache[docId] = { actualStart, actualEnd };
-      btn.textContent = 'Edit';
-      btn.closest('.shift-row').classList.add('logged');
-      statusEl.className = 'log-status ok';
-      statusEl.textContent = 'Saved.';
-    } catch(e) {
-      statusEl.className = 'log-status err';
-      statusEl.textContent = 'Save failed: ' + e.message;
-    }
-  };
-}
-
-function renderDayHero(){
-  const el = document.getElementById('dayHero');
-  const dayTotal = STAFF.reduce((sum, name) => sum + DATA[name][currentDay].total, 0);
-  const workingCount = STAFF.filter(name => !DATA[name][currentDay].off).length;
-
-  el.innerHTML = `
-    <div class="eyebrow">${DAY_FULL[currentDay]}</div>
-    <div class="big">${workingCount} of ${STAFF.length} staff working</div>
-    <div class="sub">${dayTotal}h scheduled across the team</div>
-  `;
-}
-
-function renderStaffDayView(){
-  const el = document.getElementById('staffDayView');
-  el.innerHTML = '';
-  const nowMin = new Date().getHours()*60 + new Date().getMinutes();
-  const isToday = currentDay === TODAY;
-
-  STAFF.forEach(name => {
-    const day = DATA[name][currentDay];
-    const card = document.createElement('div');
-    card.className = 'day-card' + (day.off ? ' off' : '');
-
-    let bodyHtml = '';
-    if (day.off){
-      bodyHtml = `<div class="off-text">Day off</div>`;
-    } else {
-      bodyHtml = day.shifts.map(s => {
-        const timeLabel = s.start === "—" ? '' : `<span class="shift-time">${s.start} – ${s.end}</span>`;
-        const tag = s.tag ? `<span class="shift-tag">${s.tag}</span>` : '';
-        const active = isToday && s.start !== "—" && nowMin >= toMinutes(s.start) && nowMin < toMinutes(s.end);
-        return `<div class="shift-row">${active ? '<span class="dot"></span>' : ''}<span>${timeLabel}${tag}</span></div>`;
-      }).join('');
-    }
-
-    card.innerHTML = `
-      <div class="day-label">${name}</div>
-      <div class="day-body">${bodyHtml}</div>
-      <div class="day-total">${day.off ? '–' : day.total + 'h'}</div>
-    `;
-    el.appendChild(card);
-  });
 }
 
 async function resolveWeekDataFor(mondayDate){
@@ -1486,18 +472,272 @@ async function resolveWeekDataFor(mondayDate){
       return parsed;
     }
   } catch(e) {
-    console.warn('Could not resolve a week for month view, using default pattern', e);
+    console.warn('Could not resolve a week, using default pattern', e);
   }
   return DEFAULT_DATA;
 }
 
+async function loadStaffList(){
+  if (!firebaseReady) return;
+  try {
+    const snap = await getDoc(doc(fbDb, 'rota', 'staff_list'));
+    if (snap.exists() && Array.isArray(snap.data().names) && snap.data().names.length){
+      STAFF = snap.data().names;
+      hydrateStaffData();
+    }
+  } catch(e) {
+    console.warn('Could not load staff list', e);
+  }
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+let pinBuffer = '';
+let loggedInPerson = null;
+
+function updatePinDots(){
+  document.querySelectorAll('.pin-dot').forEach((dot, i) => {
+    dot.classList.toggle('filled', i < pinBuffer.length);
+  });
+}
+
+document.querySelectorAll('.key-btn').forEach(btn => {
+  btn.onclick = () => {
+    const k = btn.dataset.key;
+    if (k === 'clear'){ pinBuffer = ''; }
+    else if (k === 'back'){ pinBuffer = pinBuffer.slice(0, -1); }
+    else if (pinBuffer.length < 4){ pinBuffer += k; }
+    updatePinDots();
+    if (pinBuffer.length === 4) checkPin();
+  };
+});
+
+async function checkPin(){
+  const statusEl = document.getElementById('loginStatus');
+  statusEl.className = 'login-status';
+  statusEl.textContent = 'Checking…';
+  try {
+    const snap = await getDoc(doc(fbDb, 'staff_pins', 'all'));
+    const pins = snap.exists() ? snap.data() : {};
+    const match = Object.keys(pins).find(name => pins[name] === pinBuffer);
+    if (match && STAFF.includes(match)){
+      loggedInPerson = match;
+      try { localStorage.setItem('rota_logged_in_person', match); } catch(e) {}
+      statusEl.textContent = '';
+      pinBuffer = '';
+      updatePinDots();
+      showHome();
+    } else {
+      statusEl.className = 'login-status err';
+      statusEl.textContent = 'PIN not recognized. Try again.';
+      pinBuffer = '';
+      updatePinDots();
+    }
+  } catch(e) {
+    statusEl.className = 'login-status err';
+    statusEl.textContent = 'Could not check PIN: ' + e.message;
+    pinBuffer = '';
+    updatePinDots();
+  }
+}
+
+document.getElementById('switchUserBtn').onclick = () => {
+  if (!confirm('Switch to a different user? You will need to enter a PIN again.')) return;
+  loggedInPerson = null;
+  try { localStorage.removeItem('rota_logged_in_person'); } catch(e) {}
+  document.getElementById('homeScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+};
+
+// ============================================================
+// HOME SCREEN
+// ============================================================
+async function showHome(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('homeScreen').classList.remove('hidden');
+  document.getElementById('hiNameSpan').textContent = loggedInPerson;
+
+  await loadStaffList();
+
+  const thisMonday = mondayOf(new Date());
+  DATA = await resolveWeekDataFor(thisMonday);
+  hydrateStaffData();
+
+  renderNowBanner();
+  renderTodayShifts();
+  renderMonthView();
+}
+
+function renderNowBanner(){
+  const el = document.getElementById('nowBanner');
+  const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+  const onNow = [];
+  STAFF.forEach(name => {
+    const day = DATA[name] ? DATA[name][TODAY] : null;
+    if (!day || day.off || !day.shifts) return;
+    day.shifts.forEach(s => {
+      const start = toMinutes(s.start), end = toMinutes(s.end);
+      if (start === null || end === null) return;
+      if (nowMin >= start && nowMin < end) onNow.push({ name, until: s.end });
+    });
+  });
+  if (onNow.length === 0){
+    el.innerHTML = `<div class="eyebrow">Working right now</div><div class="now-empty">Nobody currently on shift</div>`;
+    return;
+  }
+  const rows = onNow.map(p => `<div class="now-row"><span><span class="dot"></span>${p.name}</span><span>till ${p.until}</span></div>`).join('');
+  el.innerHTML = `<div class="eyebrow">Working right now</div>${rows}`;
+}
+
+function todayDateStr(){
+  return weekKey(new Date());
+}
+
+async function fetchLoggedTime(docId){
+  try {
+    const snap = await getDoc(doc(fbDb, 'timesheets', docId));
+    return snap.exists() ? snap.data() : null;
+  } catch(e) { return null; }
+}
+
+async function renderTodayShifts(){
+  const el = document.getElementById('todayShiftsList');
+  el.innerHTML = '';
+  const day = DATA[loggedInPerson] ? DATA[loggedInPerson][TODAY] : null;
+
+  if (!day || day.off || !day.shifts || day.shifts.length === 0){
+    el.innerHTML = `<div class="shift-card"><div class="no-shift-text">You're not scheduled to work today.</div></div>`;
+    return;
+  }
+
+  for (let si = 0; si < day.shifts.length; si++){
+    const s = day.shifts[si];
+    const docId = `${loggedInPerson}_${todayDateStr()}_${si}`;
+    const existing = await fetchLoggedTime(docId);
+
+    const card = document.createElement('div');
+    card.className = 'shift-card' + (existing ? ' logged' : '');
+    const timeLabel = s.tag ? `<div class="shift-card-tag">${s.tag}</div>` : `<div class="shift-card-time">${s.start} – ${s.end}</div>`;
+    const loggedHtml = existing ? `<div class="logged-display">Logged: ${existing.actualStart} – ${existing.actualEnd}</div>` : '';
+    const btnLabel = existing ? 'Edit my time' : 'Log my time';
+
+    card.innerHTML = `
+      ${timeLabel}
+      ${loggedHtml}
+      <button class="big-btn ${existing ? 'secondary' : ''}" data-doc="${docId}" data-defstart="${s.start}" data-defend="${s.end}">${btnLabel}</button>
+      <div class="log-panel hidden" id="panel-${docId}"></div>
+    `;
+    el.appendChild(card);
+  }
+
+  el.querySelectorAll('.big-btn[data-doc]').forEach(btn => {
+    btn.onclick = () => toggleLogPanel(btn);
+  });
+}
+
+async function toggleLogPanel(btn){
+  const docId = btn.dataset.doc;
+  const panel = document.getElementById(`panel-${docId}`);
+  const isHidden = panel.classList.contains('hidden');
+  document.querySelectorAll('.log-panel').forEach(p => p.classList.add('hidden'));
+  if (!isHidden) return;
+
+  const existing = await fetchLoggedTime(docId);
+  const defStart = btn.dataset.defstart === "—" ? "" : btn.dataset.defstart;
+  const defEnd = btn.dataset.defend === "—" ? "" : btn.dataset.defend;
+  const startVal = existing ? existing.actualStart : defStart;
+  const endVal = existing ? existing.actualEnd : defEnd;
+
+  panel.innerHTML = `
+    <label>Start time</label>
+    <div class="row"><input type="time" class="log-start-input" value="${startVal}" min="05:30" max="22:00"></div>
+    <label>End time</label>
+    <div class="row"><input type="time" class="log-end-input" value="${endVal}" min="05:30" max="22:00"></div>
+    <button class="big-btn log-save-btn">Save</button>
+    <div class="log-status"></div>
+  `;
+  panel.classList.remove('hidden');
+
+  panel.querySelector('.log-save-btn').onclick = async () => {
+    const statusEl = panel.querySelector('.log-status');
+    const actualStart = panel.querySelector('.log-start-input').value;
+    const actualEnd = panel.querySelector('.log-end-input').value;
+
+    if (!actualStart || !actualEnd){
+      statusEl.className = 'log-status err';
+      statusEl.textContent = 'Enter both start and end time.';
+      return;
+    }
+
+    const SHOP_OPEN = 5*60+30, SHOP_CLOSE = 22*60;
+    const sm = toMinutes(actualStart), em = toMinutes(actualEnd);
+    if (sm < SHOP_OPEN || sm > SHOP_CLOSE || em < SHOP_OPEN || em > SHOP_CLOSE){
+      if (!confirm(`This is outside shop hours (05:30–22:00). You entered ${actualStart}–${actualEnd}. Save anyway?`)) {
+        statusEl.textContent = 'Not saved.';
+        return;
+      }
+    }
+    const defStart = btn.dataset.defstart, defEnd = btn.dataset.defend;
+    if (defStart !== "—" && (actualStart !== defStart || actualEnd !== defEnd)){
+      if (!confirm(`You were scheduled ${defStart}–${defEnd}, but entered ${actualStart}–${actualEnd}. Is this correct?`)) {
+        statusEl.textContent = 'Not saved.';
+        return;
+      }
+    }
+
+    statusEl.className = 'log-status';
+    statusEl.textContent = 'Saving…';
+    try {
+      await setDoc(doc(fbDb, 'timesheets', docId), {
+        person: loggedInPerson, date: todayDateStr(),
+        scheduledStart: btn.dataset.defstart, scheduledEnd: btn.dataset.defend,
+        actualStart, actualEnd,
+        loggedAt: new Date().toISOString()
+      });
+      statusEl.className = 'log-status ok';
+      statusEl.textContent = 'Saved.';
+      renderTodayShifts();
+    } catch(e) {
+      statusEl.className = 'log-status err';
+      statusEl.textContent = 'Save failed: ' + e.message;
+    }
+  };
+}
+
+// ============================================================
+// MONTH VIEW (allocated + logged, per day)
+// ============================================================
+const _now = new Date();
+let viewedMonth = _now.getMonth();
+let viewedYear = _now.getFullYear();
+
+async function fetchMonthLoggedHours(person, year, month){
+  const start = weekKey(new Date(year, month, 1));
+  const end = weekKey(new Date(year, month + 1, 0));
+  const result = {};
+  if (!firebaseReady) return result;
+  try {
+    const q = query(collection(fbDb, 'timesheets'), where('person','==',person), where('date','>=',start), where('date','<=',end));
+    const snap = await getDocs(q);
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      const sm = toMinutes(d.actualStart), em = toMinutes(d.actualEnd);
+      if (sm !== null && em !== null){
+        result[d.date] = (result[d.date] || 0) + Math.round(((em - sm) / 60) * 100) / 100;
+      }
+    });
+  } catch(e) {
+    console.warn('Could not fetch logged hours for month', e);
+  }
+  return result;
+}
+
 async function renderMonthView(){
   document.getElementById('monthLabel').textContent = `${MONTH_NAMES[viewedMonth]} ${viewedYear}`;
-
   const grid = document.getElementById('monthGrid');
   grid.innerHTML = '';
-
-  ["MON","TUE","WED","THU","FRI","SAT","SUN"].forEach(d => {
+  DAYS.forEach(d => {
     const el = document.createElement('div');
     el.className = 'month-weekday';
     el.textContent = d;
@@ -1506,9 +746,8 @@ async function renderMonthView(){
 
   const firstOfMonth = new Date(viewedYear, viewedMonth, 1);
   const daysInMonth = new Date(viewedYear, viewedMonth + 1, 0).getDate();
-  const firstJsDay = firstOfMonth.getDay(); // 0=Sun
-  const leadingBlanks = firstJsDay === 0 ? 6 : firstJsDay - 1; // Mon-first offset
-
+  const firstJsDay = firstOfMonth.getDay();
+  const leadingBlanks = firstJsDay === 0 ? 6 : firstJsDay - 1;
   for (let i = 0; i < leadingBlanks; i++){
     const blank = document.createElement('div');
     blank.className = 'month-cell empty';
@@ -1518,7 +757,7 @@ async function renderMonthView(){
   const today = new Date();
   const isCurrentMonth = today.getMonth() === viewedMonth && today.getFullYear() === viewedYear;
 
-  // Resolve each distinct week block touching this month exactly once
+  // Resolve each week's schedule for this month
   const weekDataCache = {};
   for (let date = 1; date <= daysInMonth; date++){
     const cellDate = new Date(viewedYear, viewedMonth, date);
@@ -1528,8 +767,9 @@ async function renderMonthView(){
     }
   }
 
-  let monthTotal = 0;
-  let workingDays = 0;
+  const loggedMap = await fetchMonthLoggedHours(loggedInPerson, viewedYear, viewedMonth);
+
+  let monthAlloc = 0, monthLogged = 0;
 
   for (let date = 1; date <= daysInMonth; date++){
     const cellDate = new Date(viewedYear, viewedMonth, date);
@@ -1537,25 +777,38 @@ async function renderMonthView(){
     const weekdayIdx = jsDay === 0 ? 6 : jsDay - 1;
     const mondayKey = weekKey(mondayOf(cellDate));
     const weekData = weekDataCache[mondayKey];
-    const day = (weekData[currentPerson] && weekData[currentPerson][weekdayIdx])
-      ? weekData[currentPerson][weekdayIdx]
-      : DEFAULT_DATA[currentPerson][weekdayIdx];
+    const day = (weekData[loggedInPerson] && weekData[loggedInPerson][weekdayIdx])
+      ? weekData[loggedInPerson][weekdayIdx]
+      : DEFAULT_DATA[loggedInPerson][weekdayIdx];
 
-    monthTotal += day.total;
-    if (!day.off) workingDays++;
+    const dateStr = weekKey(cellDate);
+    const logged = loggedMap[dateStr] || 0;
+    monthAlloc += day.total;
+    monthLogged += logged;
+
+    let logCls = 'match';
+    if (logged > day.total) logCls = 'over';
+    else if (logged < day.total) logCls = 'under';
 
     const cell = document.createElement('div');
     cell.className = 'month-cell' + (day.off ? ' off-day' : ' working') + (isCurrentMonth && date === today.getDate() ? ' is-today' : '');
     cell.innerHTML = `
       <div class="month-date">${date}</div>
-      <div class="month-hours">${day.off ? 'off' : day.total + 'h'}</div>
+      <div class="month-cell-nums">
+        <div class="sch">${day.off ? '–' : day.total + 'h'}</div>
+        ${logged > 0 ? `<div class="log ${logCls}">${logged}h</div>` : ''}
+      </div>
     `;
     grid.appendChild(cell);
   }
 
-  document.getElementById('monthTotal').innerHTML = `
-    <span>${currentPerson} · ${workingDays} shift day${workingDays === 1 ? '' : 's'}</span>
-    <b>${monthTotal}h</b>
+  const totalCard = document.getElementById('monthTotalCard');
+  let totalCls = 'match';
+  if (monthLogged > monthAlloc) totalCls = 'over';
+  else if (monthLogged < monthAlloc) totalCls = 'under';
+  totalCard.innerHTML = `
+    <div class="month-total-row"><span>Allocated this month</span><b>${monthAlloc}h</b></div>
+    <div class="month-total-row"><span>Logged this month</span><b class="${totalCls}">${monthLogged}h</b></div>
   `;
 }
 
@@ -1570,122 +823,18 @@ document.getElementById('monthNext').onclick = () => {
   renderMonthView();
 };
 
-function renderAll(){
-  renderWhoStrip();
-  renderNowBanner();
-  renderChangeBanner();
-  renderHero();
-  renderPersonView();
-  renderDayStrip();
-  renderDayHero();
-  renderStaffDayView();
-  renderTimelineView();
-}
-
-setInterval(() => { renderNowBanner(); if (currentView === 'timeline') renderTimelineView(); }, 60000);
-
-function setView(view){
-  currentView = view;
-  document.querySelectorAll('.switch-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.view === view);
-  });
-
-  document.getElementById('whoStrip').classList.toggle('hidden', view !== 'person' && view !== 'month');
-  document.getElementById('heroBanner').classList.toggle('hidden', view !== 'person');
-  document.getElementById('personView').classList.toggle('hidden', view !== 'person');
-  document.getElementById('changeBanner').classList.toggle('hidden', view !== 'person');
-  if (view === 'person') renderChangeBanner();
-
-  document.getElementById('dayStrip').classList.toggle('hidden', view !== 'grid' && view !== 'timeline');
-  document.getElementById('dayHero').classList.toggle('hidden', view !== 'grid');
-  document.getElementById('staffDayView').classList.toggle('hidden', view !== 'grid');
-
-  document.getElementById('timelineView').classList.toggle('hidden', view !== 'timeline');
-
-  document.getElementById('topbar').classList.toggle('hidden', view !== 'grid' && view !== 'timeline');
-
-  document.getElementById('monthView').classList.toggle('hidden', view !== 'month');
-  if (view === 'month') renderMonthView();
-}
-
-document.querySelectorAll('.switch-btn').forEach(btn => {
-  btn.onclick = () => setView(btn.dataset.view);
-});
-
-renderAll();
-renderWeekLabel();
-setView('timeline');
-applyWeekData();
-
-async function loadStaffList(){
-  if (!firebaseReady) return;
-  try {
-    const snap = await getDoc(doc(fbDb, 'rota', 'staff_list'));
-    if (snap.exists() && Array.isArray(snap.data().names) && snap.data().names.length){
-      const newStaff = snap.data().names;
-      const changed = JSON.stringify(newStaff) !== JSON.stringify(STAFF);
-      if (changed){
-        STAFF = newStaff;
-        hydrateStaffData();
-        renderAll();
-        if (currentView === 'month') renderMonthView();
-      }
-    }
-  } catch(e) {
-    console.warn('Could not load staff list, using default', e);
+// ============================================================
+// INIT
+// ============================================================
+(async () => {
+  await loadStaffList();
+  let saved = null;
+  try { saved = localStorage.getItem('rota_logged_in_person'); } catch(e) {}
+  if (saved && STAFF.includes(saved)){
+    loggedInPerson = saved;
+    showHome();
   }
-}
-loadStaffList();
-
-const WEEKDAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-const _today = new Date();
-document.getElementById('todayDate').textContent = `${WEEKDAY_NAMES[_today.getDay()]} ${_today.getDate()} ${SHORT_MONTHS[_today.getMonth()]}`;
-
-function refreshCurrentView(){
-  renderAll();
-  if (currentView === 'grid') { renderDayHero(); renderStaffDayView(); }
-  if (currentView === 'timeline') renderTimelineView();
-  if (currentView === 'month') renderMonthView();
-}
-
-function setSyncStatus(state){
-  const el = document.getElementById('syncStatus');
-  if (state === 'synced'){
-    el.className = 'sync-status synced';
-    el.innerHTML = '<span class="dot"></span>Live';
-  } else {
-    el.className = 'sync-status';
-    el.innerHTML = '<span class="dot"></span>Offline copy';
-  }
-}
-
-if (firebaseReady){
-  try {
-    const rotaDocRef = doc(fbDb, 'rota', 'shifts');
-    onSnapshot(rotaDocRef, (snap) => {
-      if (snap.exists() && snap.data().json){
-        try {
-          const remote = JSON.parse(snap.data().json);
-          DEFAULT_DATA = remote;
-          applyWeekData();
-        } catch(parseErr){
-          console.warn('Failed to parse remote rota data', parseErr);
-        }
-      }
-      // A successful callback means the connection is live, whether or not
-      // a default-pattern override document has been created yet.
-      setSyncStatus('synced');
-    }, (err) => {
-      console.warn('Firestore listener error', err);
-      setSyncStatus('offline');
-    });
-  } catch(e) {
-    console.warn('Could not attach Firestore listener', e);
-    setSyncStatus('offline');
-  }
-} else {
-  setSyncStatus('offline');
-}
+})();
 </script>
 </body>
 </html>
