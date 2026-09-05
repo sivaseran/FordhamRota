@@ -1634,8 +1634,8 @@ function renderPinFields(){
     row.innerHTML = `
       <label>${name}'s PIN</label>
       <div class="row" style="gap:8px;">
-        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="pin-input" data-name="${name}" value="${staffPins[name] || ''}" placeholder="4 digits" style="flex:1; min-width:0;">
-        <button class="btn danger remove-staff-btn" data-name="${name}" style="flex:0 0 auto; padding:10px 14px; white-space:nowrap;">Remove</button>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="pin-input" data-name="${name}" value="${staffPins[name] || ''}" placeholder="4 digits" style="flex:1 1 auto; min-width:0; width:auto;">
+        <button class="btn danger remove-staff-btn" data-name="${name}" style="flex:0 0 auto; width:auto; padding:10px 14px; white-space:nowrap;">Remove</button>
       </div>
     `;
     el.appendChild(row);
