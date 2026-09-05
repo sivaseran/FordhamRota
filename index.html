@@ -218,6 +218,86 @@
     justify-content:space-between;
     margin:6px 0 12px;
   }
+  .week-nav-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:6px 0 12px;
+  }
+  .shift-day-card{
+    background:var(--navy-2);
+    border:1px solid var(--off-line);
+    border-radius:14px;
+    padding:14px 16px;
+    margin-bottom:10px;
+  }
+  .shift-day-card.today{ border-color:var(--amber); }
+  .shift-day-name{
+    font-size:13px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--amber);
+    margin-bottom:8px;
+  }
+  .shift-day-off{ font-size:15px; color:var(--off); font-style:italic; }
+  .shift-entry{
+    padding:10px 0;
+  }
+  .shift-entry + .shift-entry{ border-top:1px dashed var(--off-line); }
+  .shift-entry-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .shift-entry-time{ font-size:18px; font-weight:800; }
+  .shift-entry-tag{ font-size:13px; color:var(--amber); font-weight:800; text-transform:uppercase; }
+  .shift-entry-logged{
+    font-size:15px;
+    color:var(--green);
+    font-weight:700;
+    margin-top:6px;
+  }
+  .shift-entry-btn{
+    background:var(--teal);
+    color:var(--amber);
+    border:1px solid var(--amber-dim);
+    font-size:14px;
+    font-weight:800;
+    padding:9px 16px;
+    border-radius:10px;
+  }
+  .shift-entry-btn.logged{
+    background:none;
+    border-color:#3A5A34;
+    color:var(--green);
+  }
+  .reason-select{
+    width:100%;
+    background:var(--navy);
+    border:1px solid var(--amber-dim);
+    color:var(--cream);
+    padding:14px;
+    border-radius:10px;
+    font-size:16px;
+    margin-top:6px;
+  }
+  .reason-other-input{
+    width:100%;
+    background:var(--navy);
+    border:1px solid var(--amber-dim);
+    color:var(--cream);
+    padding:14px;
+    border-radius:10px;
+    font-size:16px;
+    margin-top:8px;
+  }
+  .reason-note{
+    font-size:13px;
+    color:var(--amber);
+    margin-top:10px;
+    font-weight:700;
+  }
   .month-nav-btn{
     background:var(--navy-2);
     border:1px solid var(--off-line);
@@ -326,8 +406,13 @@
 
   <div id="nowBanner" class="hero now"></div>
 
-  <div class="section-title">Log my time</div>
-  <div id="todayShiftsList"></div>
+  <div class="section-title">My shifts</div>
+  <div class="week-nav-row">
+    <button class="month-nav-btn" id="shiftsWeekPrev">‹</button>
+    <div class="month-label" id="shiftsWeekLabel"></div>
+    <button class="month-nav-btn" id="shiftsWeekNext">›</button>
+  </div>
+  <div id="myShiftsList"></div>
 
   <div class="section-title">My month</div>
   <div class="month-nav">
@@ -565,7 +650,7 @@ async function showHome(){
   hydrateStaffData();
 
   renderNowBanner();
-  renderTodayShifts();
+  renderMyShiftsWeek();
   renderMonthView();
 }
 
@@ -601,37 +686,77 @@ async function fetchLoggedTime(docId){
   } catch(e) { return null; }
 }
 
-async function renderTodayShifts(){
-  const el = document.getElementById('todayShiftsList');
+const DEFAULT_TIMELOG_REASONS = ["Manager's request", "Extra job", "Delivery delay", "Promotion set-up"];
+
+async function fetchTimeLogReasons(){
+  if (!firebaseReady) return DEFAULT_TIMELOG_REASONS;
+  try {
+    const snap = await getDoc(doc(fbDb, 'rota', 'reason_codes'));
+    if (snap.exists() && Array.isArray(snap.data().timeLogReasons) && snap.data().timeLogReasons.length){
+      return snap.data().timeLogReasons;
+    }
+  } catch(e) { console.warn('Could not load reason list, using default', e); }
+  return DEFAULT_TIMELOG_REASONS;
+}
+
+let shiftsWeekStart = mondayOf(new Date());
+
+function renderShiftsWeekLabel(){
+  const end = new Date(shiftsWeekStart); end.setDate(end.getDate() + 6);
+  const isThisWeek = weekKey(mondayOf(new Date())) === weekKey(shiftsWeekStart);
+  const label = `${shiftsWeekStart.getDate()} ${SHORT_MONTHS[shiftsWeekStart.getMonth()]} – ${end.getDate()} ${SHORT_MONTHS[end.getMonth()]}`;
+  document.getElementById('shiftsWeekLabel').textContent = isThisWeek ? `This week · ${label}` : label;
+}
+
+async function renderMyShiftsWeek(){
+  renderShiftsWeekLabel();
+  const el = document.getElementById('myShiftsList');
+  el.innerHTML = '<div class="no-shift-text">Loading…</div>';
+
+  const weekData = await resolveWeekDataFor(shiftsWeekStart);
+  const personWeek = weekData[loggedInPerson] || DEFAULT_DATA[loggedInPerson];
   el.innerHTML = '';
-  const day = DATA[loggedInPerson] ? DATA[loggedInPerson][TODAY] : null;
 
-  if (!day || day.off || !day.shifts || day.shifts.length === 0){
-    el.innerHTML = `<div class="shift-card"><div class="no-shift-text">You're not scheduled to work today.</div></div>`;
-    return;
-  }
-
-  for (let si = 0; si < day.shifts.length; si++){
-    const s = day.shifts[si];
-    const docId = `${loggedInPerson}_${todayDateStr()}_${si}`;
-    const existing = await fetchLoggedTime(docId);
+  for (let idx = 0; idx < 7; idx++){
+    const dateObj = new Date(shiftsWeekStart); dateObj.setDate(dateObj.getDate() + idx);
+    const dateStr = weekKey(dateObj);
+    const isToday = dateStr === todayDateStr();
+    const day = personWeek[idx];
 
     const card = document.createElement('div');
-    card.className = 'shift-card' + (existing ? ' logged' : '');
-    const timeLabel = s.tag ? `<div class="shift-card-tag">${s.tag}</div>` : `<div class="shift-card-time">${s.start} – ${s.end}</div>`;
-    const loggedHtml = existing ? `<div class="logged-display">Logged: ${existing.actualStart} – ${existing.actualEnd}</div>` : '';
-    const btnLabel = existing ? 'Edit my time' : 'Log my time';
+    card.className = 'shift-day-card' + (isToday ? ' today' : '');
 
-    card.innerHTML = `
-      ${timeLabel}
-      ${loggedHtml}
-      <button class="big-btn ${existing ? 'secondary' : ''}" data-doc="${docId}" data-defstart="${s.start}" data-defend="${s.end}">${btnLabel}</button>
-      <div class="log-panel hidden" id="panel-${docId}"></div>
-    `;
+    let bodyHtml = `<div class="shift-day-name">${DAY_FULL[idx]}${isToday ? ' · Today' : ''}</div>`;
+
+    if (!day || day.off || !day.shifts || day.shifts.length === 0){
+      bodyHtml += `<div class="shift-day-off">Day off</div>`;
+    } else {
+      for (let si = 0; si < day.shifts.length; si++){
+        const s = day.shifts[si];
+        const docId = `${loggedInPerson}_${dateStr}_${si}`;
+        const existing = await fetchLoggedTime(docId);
+        const timeLabel = s.tag ? s.tag : `${s.start} – ${s.end}`;
+
+        bodyHtml += `
+          <div class="shift-entry">
+            <div class="shift-entry-top">
+              <span class="${s.tag ? 'shift-entry-tag' : 'shift-entry-time'}">${timeLabel}</span>
+              <button class="shift-entry-btn ${existing ? 'logged' : ''}" data-doc="${docId}" data-defstart="${s.start}" data-defend="${s.end}" data-date="${dateStr}">
+                ${existing ? 'Edit' : 'Log time'}
+              </button>
+            </div>
+            ${existing ? `<div class="shift-entry-logged">Logged: ${existing.actualStart} – ${existing.actualEnd}</div>` : ''}
+            <div class="log-panel hidden" id="panel-${docId}"></div>
+          </div>
+        `;
+      }
+    }
+
+    card.innerHTML = bodyHtml;
     el.appendChild(card);
   }
 
-  el.querySelectorAll('.big-btn[data-doc]').forEach(btn => {
+  el.querySelectorAll('.shift-entry-btn[data-doc]').forEach(btn => {
     btn.onclick = () => toggleLogPanel(btn);
   });
 }
@@ -654,15 +779,49 @@ async function toggleLogPanel(btn){
     <div class="row"><input type="time" class="log-start-input" value="${startVal}" min="05:30" max="22:00"></div>
     <label>End time</label>
     <div class="row"><input type="time" class="log-end-input" value="${endVal}" min="05:30" max="22:00"></div>
+    <div id="reasonArea-${docId}"></div>
     <button class="big-btn log-save-btn">Save</button>
     <div class="log-status"></div>
   `;
   panel.classList.remove('hidden');
 
+  const startInput = panel.querySelector('.log-start-input');
+  const endInput = panel.querySelector('.log-end-input');
+  const reasonArea = panel.querySelector(`#reasonArea-${docId}`);
+  let reasonsList = null;
+
+  async function updateReasonUI(){
+    const defStartRaw = btn.dataset.defstart, defEndRaw = btn.dataset.defend;
+    const deviates = defStartRaw !== "—" && (startInput.value !== defStartRaw || endInput.value !== defEndRaw);
+    if (!deviates){
+      reasonArea.innerHTML = '';
+      return;
+    }
+    if (!reasonsList) reasonsList = await fetchTimeLogReasons();
+    reasonArea.innerHTML = `
+      <div class="reason-note">Time differs from scheduled — please select a reason</div>
+      <select class="reason-select" id="reasonSelect-${docId}">
+        <option value="">Select a reason…</option>
+        ${reasonsList.map(r => `<option value="${r}">${r}</option>`).join('')}
+        <option value="__other__">Other (type below)</option>
+      </select>
+      <input type="text" class="reason-other-input hidden" id="reasonOther-${docId}" placeholder="Type the reason">
+    `;
+    const sel = reasonArea.querySelector(`#reasonSelect-${docId}`);
+    const otherInput = reasonArea.querySelector(`#reasonOther-${docId}`);
+    sel.onchange = () => {
+      otherInput.classList.toggle('hidden', sel.value !== '__other__');
+    };
+  }
+
+  startInput.onchange = updateReasonUI;
+  endInput.onchange = updateReasonUI;
+  await updateReasonUI();
+
   panel.querySelector('.log-save-btn').onclick = async () => {
     const statusEl = panel.querySelector('.log-status');
-    const actualStart = panel.querySelector('.log-start-input').value;
-    const actualEnd = panel.querySelector('.log-end-input').value;
+    const actualStart = startInput.value;
+    const actualEnd = endInput.value;
 
     if (!actualStart || !actualEnd){
       statusEl.className = 'log-status err';
@@ -678,11 +837,28 @@ async function toggleLogPanel(btn){
         return;
       }
     }
+
     const defStart = btn.dataset.defstart, defEnd = btn.dataset.defend;
-    if (defStart !== "—" && (actualStart !== defStart || actualEnd !== defEnd)){
-      if (!confirm(`You were scheduled ${defStart}–${defEnd}, but entered ${actualStart}–${actualEnd}. Is this correct?`)) {
-        statusEl.textContent = 'Not saved.';
+    const deviates = defStart !== "—" && (actualStart !== defStart || actualEnd !== defEnd);
+    let reason = null;
+
+    if (deviates){
+      const sel = reasonArea.querySelector(`#reasonSelect-${docId}`);
+      const otherInput = reasonArea.querySelector(`#reasonOther-${docId}`);
+      if (!sel || !sel.value){
+        statusEl.className = 'log-status err';
+        statusEl.textContent = 'Time differs from scheduled — please select a reason.';
         return;
+      }
+      if (sel.value === '__other__'){
+        if (!otherInput.value.trim()){
+          statusEl.className = 'log-status err';
+          statusEl.textContent = 'Please type a reason.';
+          return;
+        }
+        reason = otherInput.value.trim();
+      } else {
+        reason = sel.value;
       }
     }
 
@@ -690,20 +866,30 @@ async function toggleLogPanel(btn){
     statusEl.textContent = 'Saving…';
     try {
       await setDoc(doc(fbDb, 'timesheets', docId), {
-        person: loggedInPerson, date: todayDateStr(),
+        person: loggedInPerson, date: btn.dataset.date,
         scheduledStart: btn.dataset.defstart, scheduledEnd: btn.dataset.defend,
         actualStart, actualEnd,
+        reason: reason,
         loggedAt: new Date().toISOString()
       });
       statusEl.className = 'log-status ok';
       statusEl.textContent = 'Saved.';
-      renderTodayShifts();
+      renderMyShiftsWeek();
     } catch(e) {
       statusEl.className = 'log-status err';
       statusEl.textContent = 'Save failed: ' + e.message;
     }
   };
 }
+
+document.getElementById('shiftsWeekPrev').onclick = () => {
+  shiftsWeekStart = new Date(shiftsWeekStart); shiftsWeekStart.setDate(shiftsWeekStart.getDate() - 7);
+  renderMyShiftsWeek();
+};
+document.getElementById('shiftsWeekNext').onclick = () => {
+  shiftsWeekStart = new Date(shiftsWeekStart); shiftsWeekStart.setDate(shiftsWeekStart.getDate() + 7);
+  renderMyShiftsWeek();
+};
 
 // ============================================================
 // MONTH VIEW (allocated + logged, per day)
