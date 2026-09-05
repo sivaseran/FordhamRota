@@ -552,6 +552,30 @@ let DEFAULT_DATA = {
 
 let DATA = DEFAULT_DATA;
 
+if (firebaseReady){
+  try {
+    onSnapshot(doc(fbDb, 'rota', 'shifts'), (snap) => {
+      if (snap.exists() && snap.data().json){
+        try {
+          DEFAULT_DATA = JSON.parse(snap.data().json);
+          hydrateStaffData();
+          if (loggedInPerson){
+            renderNowBanner();
+            renderMyShiftsWeek();
+            renderMonthView();
+          }
+        } catch(parseErr){
+          console.warn('Failed to parse remote base pattern', parseErr);
+        }
+      }
+    }, (err) => {
+      console.warn('Base pattern listener error', err);
+    });
+  } catch(e) {
+    console.warn('Could not attach base pattern listener', e);
+  }
+}
+
 function todayIndex(){
   const d = new Date().getDay();
   return d === 0 ? 6 : d - 1;
@@ -947,9 +971,11 @@ async function toggleLogPanel(btn){
       });
       statusEl.className = 'log-status ok';
       statusEl.textContent = 'Saved.';
-      setTimeout(() => { panel.classList.add('hidden'); }, 700);
-      renderMyShiftsWeek();
-      renderMonthView();
+      setTimeout(() => {
+        panel.classList.add('hidden');
+        renderMyShiftsWeek();
+        renderMonthView();
+      }, 700);
     } catch(e) {
       statusEl.className = 'log-status err';
       statusEl.textContent = 'Save failed: ' + e.message;

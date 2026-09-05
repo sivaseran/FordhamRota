@@ -96,6 +96,13 @@
     border-color:var(--amber);
     color:var(--navy);
   }
+  .view-subtab-btn{ font-size:13px; padding:9px 6px; }
+  .view-subtab-btn.active{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:var(--navy);
+  }
+  .view-subtab-content.hidden{ display:none; }
   .report-scroll{
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
@@ -146,6 +153,13 @@
     font-weight:800;
   }
   .grid-report-table td.bold{ font-weight:800; }
+  .grid-report-table td.covering-cell{
+    font-size:10px;
+    color:var(--amber);
+    font-weight:700;
+    max-width:110px;
+    white-space:normal;
+  }
   .grid-legend{
     font-size:10px;
     color:var(--off);
@@ -255,15 +269,18 @@
   .view-day-card.off{ opacity:0.45; }
   .view-day-card.today{ border-color:var(--amber); }
   .view-day-label{
-    width:56px; flex:0 0 56px;
+    width:78px; flex:0 0 78px;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     background:var(--teal);
-    font-size:12px; font-weight:800; text-transform:uppercase;
+    font-size:11px; font-weight:800; text-transform:uppercase;
     color:var(--cream);
+    padding:2px 4px;
+    text-align:center;
+    line-height:1.2;
   }
   .view-day-card.today .view-day-label{ background:var(--amber); color:var(--navy); }
   .view-day-body{ flex:1; padding:10px 14px; }
-  .view-shift-row{ display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:3px 0; }
+  .view-shift-row{ display:flex; justify-content:flex-start; align-items:center; font-size:14px; padding:3px 0; }
   .view-shift-row + .view-shift-row{ border-top:1px dashed var(--off-line); margin-top:4px; padding-top:6px; }
   .view-shift-row .dot{ width:8px; height:8px; border-radius:50%; background:#7FD858; display:inline-block; margin-right:6px; }
   .view-shift-time{ font-weight:700; }
@@ -483,13 +500,10 @@
 <div id="editorArea" class="hidden">
 
   <div class="row" id="editorTabs" style="gap:6px; margin-bottom:16px; flex-wrap:wrap;">
-    <button class="btn secondary editor-tab-btn active" data-tab="shifts">Edit Shifts</button>
-    <button class="btn secondary editor-tab-btn" data-tab="staffview">Staff</button>
-    <button class="btn secondary editor-tab-btn" data-tab="dayview">Day</button>
-    <button class="btn secondary editor-tab-btn" data-tab="timelineview">Timeline</button>
+    <button class="btn secondary editor-tab-btn active" data-tab="shifts">Edit</button>
+    <button class="btn secondary editor-tab-btn" data-tab="viewschedules">View</button>
     <button class="btn secondary editor-tab-btn" data-tab="report">Report</button>
-    <button class="btn secondary editor-tab-btn" data-tab="addstaff">Add Staff</button>
-    <button class="btn secondary editor-tab-btn" data-tab="pins">PINs</button>
+    <button class="btn secondary editor-tab-btn" data-tab="addstaff">Staff</button>
   </div>
 
   <div id="tab-shifts" class="tab-content">
@@ -536,23 +550,37 @@
 
   </div>
 
-  <div id="tab-staffview" class="tab-content hidden">
-    <div class="view-strip" id="viewWhoStrip"></div>
-    <div id="viewNowBanner1" class="view-hero now"></div>
-    <div id="viewHeroBanner" class="view-hero"></div>
-    <div id="viewPersonView"></div>
-  </div>
+  <div id="tab-viewschedules" class="tab-content hidden">
+    <div class="week-nav" style="margin-bottom:12px;">
+      <button class="strip-btn" id="viewWeekPrev">‹</button>
+      <div id="viewWeekLabel" class="week-label-text"></div>
+      <button class="strip-btn" id="viewWeekNext">›</button>
+    </div>
 
-  <div id="tab-dayview" class="tab-content hidden">
-    <div class="view-day-strip" id="viewDayStripA"></div>
-    <div id="viewDayHero" class="view-hero"></div>
-    <div id="viewStaffDayView"></div>
-  </div>
+    <div class="row" id="viewSubTabs" style="gap:6px; margin-bottom:14px;">
+      <button class="btn secondary view-subtab-btn active" data-subtab="staffview">Staff</button>
+      <button class="btn secondary view-subtab-btn" data-subtab="dayview">Day</button>
+      <button class="btn secondary view-subtab-btn" data-subtab="timelineview">Timeline</button>
+    </div>
 
-  <div id="tab-timelineview" class="tab-content hidden">
-    <div class="view-day-strip" id="viewDayStripB"></div>
-    <div id="viewNowBanner2" class="view-hero now"></div>
-    <div id="viewTimelineView"></div>
+    <div id="subtab-staffview" class="view-subtab-content">
+      <div class="view-strip" id="viewWhoStrip"></div>
+      <div id="viewNowBanner1" class="view-hero now"></div>
+      <div id="viewHeroBanner" class="view-hero"></div>
+      <div id="viewPersonView"></div>
+    </div>
+
+    <div id="subtab-dayview" class="view-subtab-content hidden">
+      <div class="view-day-strip" id="viewDayStripA"></div>
+      <div id="viewDayHero" class="view-hero"></div>
+      <div id="viewStaffDayView"></div>
+    </div>
+
+    <div id="subtab-timelineview" class="view-subtab-content hidden">
+      <div class="view-day-strip" id="viewDayStripB"></div>
+      <div id="viewNowBanner2" class="view-hero now"></div>
+      <div id="viewTimelineView"></div>
+    </div>
   </div>
 
   <div id="tab-report" class="tab-content hidden">
@@ -583,9 +611,7 @@
     <button class="btn secondary" id="addStaffBtn" style="margin-top:10px;">Add person</button>
     <div class="status" id="addStaffStatus"></div>
   </div>
-  </div>
 
-  <div id="tab-pins" class="tab-content hidden">
   <div class="card">
     <div style="font-size:13px; font-weight:800; color:var(--amber); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:10px;">Staff clock-in PINs</div>
     <div class="sub" style="margin-bottom:12px;">Each person uses this PIN to log their actual start/end time on the main app. Not a full login — just enough to stop mix-ups between staff.</div>
@@ -692,6 +718,43 @@ const WIN_START = 5 * 60, WIN_END = 22 * 60, WIN_RANGE = WIN_END - WIN_START;
 
 let viewPerson = STAFF[0];
 let viewDayIdx = TODAY;
+let viewWeekStart = mondayOf(new Date());
+let viewDATA = {};
+let nowBannerData = null; // always the REAL current week, independent of browsing
+
+async function resolveViewWeekData(){
+  viewDATA = await resolveWeekDataForReport(viewWeekStart);
+  STAFF.forEach(name => { if (!viewDATA[name]) viewDATA[name] = blankWeek(); });
+}
+
+async function getNowBannerData(){
+  if (!nowBannerData) nowBannerData = await resolveWeekDataForReport(mondayOf(new Date()));
+  return nowBannerData;
+}
+
+function renderViewWeekLabel(){
+  const end = new Date(viewWeekStart); end.setDate(end.getDate() + 6);
+  const isThisWeek = weekKey(mondayOf(new Date())) === weekKey(viewWeekStart);
+  const label = `${viewWeekStart.getDate()} ${SHORT_MONTHS[viewWeekStart.getMonth()]} – ${end.getDate()} ${SHORT_MONTHS[end.getMonth()]}`;
+  document.getElementById('viewWeekLabel').textContent = isThisWeek ? `This week · ${label}` : label;
+}
+
+document.getElementById('viewWeekPrev').onclick = async () => {
+  viewWeekStart = new Date(viewWeekStart); viewWeekStart.setDate(viewWeekStart.getDate() - 7);
+  renderViewWeekLabel();
+  await resolveViewWeekData();
+  if (currentViewSubtab === 'staffview') renderViewStaffTab();
+  if (currentViewSubtab === 'dayview') renderViewDayTab();
+  if (currentViewSubtab === 'timelineview') renderViewTimelineTab();
+};
+document.getElementById('viewWeekNext').onclick = async () => {
+  viewWeekStart = new Date(viewWeekStart); viewWeekStart.setDate(viewWeekStart.getDate() + 7);
+  renderViewWeekLabel();
+  await resolveViewWeekData();
+  if (currentViewSubtab === 'staffview') renderViewStaffTab();
+  if (currentViewSubtab === 'dayview') renderViewDayTab();
+  if (currentViewSubtab === 'timelineview') renderViewTimelineTab();
+};
 
 function renderViewWhoStrip(){
   const el = document.getElementById('viewWhoStrip');
@@ -706,7 +769,7 @@ function renderViewWhoStrip(){
 }
 
 function findViewNextShift(person){
-  const days = DATA[person];
+  const days = viewDATA[person];
   for (let offset = 1; offset <= 7; offset++){
     const idx = (TODAY + offset) % 7;
     const day = days[idx];
@@ -719,7 +782,7 @@ function findViewNextShift(person){
 
 function renderViewHero(){
   const hero = document.getElementById('viewHeroBanner');
-  const weekTotal = DATA[viewPerson].reduce((s,d)=>s+d.total,0);
+  const weekTotal = viewDATA[viewPerson].reduce((s,d)=>s+d.total,0);
   const next = findViewNextShift(viewPerson);
 
   let bigText, subText;
@@ -741,13 +804,14 @@ function renderViewHero(){
   `;
 }
 
-function renderViewNowBanner(elId){
+async function renderViewNowBanner(elId){
   const el = document.getElementById(elId);
+  const data = await getNowBannerData();
   const nowMin = new Date().getHours()*60 + new Date().getMinutes();
   const onNow = [];
   STAFF.forEach(name => {
-    const day = DATA[name][TODAY];
-    if (day.off || !day.shifts) return;
+    const day = data[name] ? data[name][TODAY] : null;
+    if (!day || day.off || !day.shifts) return;
     day.shifts.forEach(s => {
       const start = toMinutes(s.start), end = toMinutes(s.end);
       if (start === null || end === null) return;
@@ -765,7 +829,7 @@ function renderViewNowBanner(elId){
 function renderViewPersonView(){
   const el = document.getElementById('viewPersonView');
   el.innerHTML = '';
-  const days = DATA[viewPerson];
+  const days = viewDATA[viewPerson];
   days.forEach((day, idx) => {
     const card = document.createElement('div');
     card.className = 'view-day-card' + (day.off ? ' off' : '') + (idx === TODAY ? ' today' : '');
@@ -804,8 +868,8 @@ function renderViewDayStrips(){
 
 function renderViewDayHero(){
   const el = document.getElementById('viewDayHero');
-  const dayTotal = STAFF.reduce((sum, name) => sum + DATA[name][viewDayIdx].total, 0);
-  const workingCount = STAFF.filter(name => !DATA[name][viewDayIdx].off).length;
+  const dayTotal = STAFF.reduce((sum, name) => sum + viewDATA[name][viewDayIdx].total, 0);
+  const workingCount = STAFF.filter(name => !viewDATA[name][viewDayIdx].off).length;
   el.innerHTML = `
     <div class="eyebrow">${DAY_FULL[viewDayIdx]}</div>
     <div class="big">${workingCount} of ${STAFF.length} staff working</div>
@@ -817,9 +881,9 @@ function renderViewStaffDayView(){
   const el = document.getElementById('viewStaffDayView');
   el.innerHTML = '';
   const nowMin = new Date().getHours()*60 + new Date().getMinutes();
-  const isToday = viewDayIdx === TODAY;
+  const isToday = viewDayIdx === TODAY && weekKey(mondayOf(new Date())) === weekKey(viewWeekStart);
   STAFF.forEach(name => {
-    const day = DATA[name][viewDayIdx];
+    const day = viewDATA[name][viewDayIdx];
     const card = document.createElement('div');
     card.className = 'view-day-card' + (day.off ? ' off' : '');
     let bodyHtml = '';
@@ -845,12 +909,12 @@ function renderViewStaffDayView(){
 function renderViewTimelineView(){
   const el = document.getElementById('viewTimelineView');
   const nowMin = new Date().getHours()*60 + new Date().getMinutes();
-  const isToday = viewDayIdx === TODAY;
+  const isToday = viewDayIdx === TODAY && weekKey(mondayOf(new Date())) === weekKey(viewWeekStart);
 
   let html = '<div class="tl-axis"><span>05:00</span><span>09:00</span><span>13:00</span><span>17:00</span><span>22:00</span></div>';
 
   STAFF.forEach(name => {
-    const day = DATA[name][viewDayIdx];
+    const day = viewDATA[name][viewDayIdx];
     if (day.off){
       html += `<div class="tl-row"><div class="tl-off-row"><div class="tl-label">${name}</div><div class="tl-off-track"><span>Day off</span></div></div></div>`;
       return;
@@ -889,20 +953,23 @@ function renderViewTimelineView(){
   el.innerHTML = html;
 }
 
-function renderViewStaffTab(){
+async function renderViewStaffTab(){
+  renderViewWeekLabel();
   renderViewWhoStrip();
-  renderViewNowBanner('viewNowBanner1');
+  await renderViewNowBanner('viewNowBanner1');
   renderViewHero();
   renderViewPersonView();
 }
-function renderViewDayTab(){
+async function renderViewDayTab(){
+  renderViewWeekLabel();
   renderViewDayStrips();
   renderViewDayHero();
   renderViewStaffDayView();
 }
-function renderViewTimelineTab(){
+async function renderViewTimelineTab(){
+  renderViewWeekLabel();
   renderViewDayStrips();
-  renderViewNowBanner('viewNowBanner2');
+  await renderViewNowBanner('viewNowBanner2');
   renderViewTimelineView();
 }
 
@@ -1095,9 +1162,9 @@ async function loadReport(){
     });
 
     rows.sort((a,b) => a.date.localeCompare(b.date) || a.person.localeCompare(b.person));
-    currentReportRows = { rows, periodLabel, startDate: new Date(startDate), endDate: new Date(endDate) };
 
     if (rows.length === 0){
+      currentReportRows = { rows, periodLabel, startDate: new Date(startDate), endDate: new Date(endDate), weeks: [] };
       wrap.innerHTML = '<div class="sub" style="text-align:center;">No time logged for this period yet.</div>';
       statusEl.className = 'status';
       statusEl.textContent = '';
@@ -1109,7 +1176,8 @@ async function loadReport(){
       if (!actualMap[r.date]) actualMap[r.date] = {};
       actualMap[r.date][r.person] = (actualMap[r.date][r.person] || 0) + (r.actualHours || 0);
     });
-    const weeks = buildWeeklyGrid(startDate, endDate, actualMap);
+    const weeks = await buildWeeklyGrid(startDate, endDate, actualMap);
+    currentReportRows = { rows, periodLabel, startDate: new Date(startDate), endDate: new Date(endDate), weeks };
     wrap.innerHTML = renderReportHtml(weeks);
 
     document.getElementById('downloadExcelBtn').style.display = '';
@@ -1123,7 +1191,19 @@ async function loadReport(){
 
 document.getElementById('loadReportBtn').onclick = loadReport;
 
-function buildWeeklyGrid(startDate, endDate, actualMap){
+async function resolveWeekDataForReport(mondayDate){
+  try {
+    const snap = await getDoc(doc(db, 'rota', `week_${weekKey(mondayDate)}`));
+    if (snap.exists() && snap.data().json){
+      const parsed = JSON.parse(snap.data().json);
+      STAFF.forEach(name => { if (!parsed[name]) parsed[name] = blankWeek(); });
+      return parsed;
+    }
+  } catch(e) { console.warn('Could not resolve week for report', e); }
+  return DEFAULT_DATA;
+}
+
+async function buildWeeklyGrid(startDate, endDate, actualMap){
   const allDates = [];
   const cursor = new Date(startDate);
   const end = new Date(endDate);
@@ -1139,26 +1219,57 @@ function buildWeeklyGrid(startDate, endDate, actualMap){
 
   const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
-  return weeksRaw.map((week, wi) => {
+  // Resolve each distinct week's real data once (respects Vacate/Cover overrides)
+  const weekDataCache = {};
+  for (const week of weeksRaw){
+    const mondayKey = weekKey(week[0].getDay() === 1 ? week[0] : mondayOf(week[0]));
+    if (!(mondayKey in weekDataCache)){
+      weekDataCache[mondayKey] = await resolveWeekDataForReport(mondayOf(week[0]));
+    }
+  }
+
+  const result = [];
+  for (let wi = 0; wi < weeksRaw.length; wi++){
+    const week = weeksRaw[wi];
+    const mondayKey = weekKey(mondayOf(week[0]));
+    const weekData = weekDataCache[mondayKey];
+
     const days = week.map(dateObj => {
       const ds = weekKey(dateObj);
       const jsDay = dateObj.getDay();
-      const dayName = DAY_NAMES[jsDay === 0 ? 6 : jsDay - 1];
+      const weekdayIdx = jsDay === 0 ? 6 : jsDay - 1;
+      const dayName = DAY_NAMES[weekdayIdx];
+
+      const covering = [];
       const perPerson = STAFF.map(name => {
-        const allocated = allocatedHoursFor(name, dateObj);
+        const dayData = (weekData[name] && weekData[name][weekdayIdx]) ? weekData[name][weekdayIdx] : DEFAULT_DATA[name][weekdayIdx];
+        const allocated = dayData.off ? 0 : dayData.total;
         const actual = (actualMap[ds] && actualMap[ds][name]) || 0;
+
+        if (!dayData.off && dayData.shifts){
+          dayData.shifts.forEach(s => {
+            if (s.coveringFor){
+              const hrs = s.tag ? (parseFloat(s.tag.match(/[\d.]+/)?.[0]) || 0) : (() => {
+                const sm = toMinutes(s.start), em = toMinutes(s.end);
+                return (sm !== null && em !== null) ? Math.round(((em-sm)/60)*100)/100 : 0;
+              })();
+              covering.push(`${name} covering ${s.coveringFor} (${hrs}h)`);
+            }
+          });
+        }
         return { name, allocated, actual };
       });
       const dayAlloc = perPerson.reduce((s,p) => s+p.allocated, 0);
       const dayActual = perPerson.reduce((s,p) => s+p.actual, 0);
-      return { date: ds, dayName, perPerson, dayAlloc, dayActual };
+      return { date: ds, dayName, perPerson, dayAlloc, dayActual, covering };
     });
     const weekAlloc = STAFF.map((_, si) => days.reduce((s,d) => s+d.perPerson[si].allocated, 0));
     const weekActual = STAFF.map((_, si) => days.reduce((s,d) => s+d.perPerson[si].actual, 0));
     const grandAlloc = weekAlloc.reduce((s,v) => s+v, 0);
     const grandActual = weekActual.reduce((s,v) => s+v, 0);
-    return { weekNum: wi+1, days, weekAlloc, weekActual, grandAlloc, grandActual };
-  });
+    result.push({ weekNum: wi+1, days, weekAlloc, weekActual, grandAlloc, grandActual });
+  }
+  return result;
 }
 
 function computeMonthTotals(weeks){
@@ -1174,9 +1285,9 @@ function computeMonthTotals(weeks){
 function renderReportHtml(weeks){
   let html = '<div class="report-scroll"><table class="grid-report-table">';
   weeks.forEach(week => {
-    html += `<tr class="grid-week-label"><td colspan="${2 + STAFF.length + 1}">WEEK-${week.weekNum}</td></tr>`;
-    html += '<tr class="grid-header"><td>Date</td><td>Day</td>' + STAFF.map(n => `<td>${n}</td>`).join('') + '<td>Total</td></tr>';
-    html += '<tr class="grid-subheader"><td></td><td></td>' + STAFF.map(() => `<td><span>Alloc</span><span>Actual</span></td>`).join('') + `<td><span>Alloc</span><span>Actual</span></td></tr>`;
+    html += `<tr class="grid-week-label"><td colspan="${2 + 2*STAFF.length + 2 + 1}">WEEK-${week.weekNum}</td></tr>`;
+    html += '<tr class="grid-header"><td>Date</td><td>Day</td>' + STAFF.map(n => `<td>${n}</td>`).join('') + '<td>Total</td><td>Covering</td></tr>';
+    html += '<tr class="grid-subheader"><td></td><td></td>' + STAFF.map(() => `<td><span>Alloc</span><span>Actual</span></td>`).join('') + `<td><span>Alloc</span><span>Actual</span></td><td></td></tr>`;
 
     week.days.forEach(day => {
       html += `<tr><td>${day.date}</td><td>${day.dayName}</td>`;
@@ -1185,7 +1296,8 @@ function renderReportHtml(weeks){
         html += `<td>${p.allocated || '–'}<span class="${cls}">${p.actual || '–'}</span></td>`;
       });
       const totCls = day.dayActual > day.dayAlloc ? 'over' : (day.dayActual < day.dayAlloc ? 'under' : '');
-      html += `<td class="bold">${day.dayAlloc || '–'}<span class="${totCls}">${day.dayActual || '–'}</span></td></tr>`;
+      html += `<td class="bold">${day.dayAlloc || '–'}<span class="${totCls}">${day.dayActual || '–'}</span></td>`;
+      html += `<td class="covering-cell">${day.covering.length ? day.covering.join('<br>') : '–'}</td></tr>`;
     });
 
     html += `<tr class="grid-total-row"><td colspan="2">Week Total</td>`;
@@ -1195,7 +1307,7 @@ function renderReportHtml(weeks){
       html += `<td>${a || '–'}<span class="${cls}">${b || '–'}</span></td>`;
     });
     const gCls = week.grandActual > week.grandAlloc ? 'over' : (week.grandActual < week.grandAlloc ? 'under' : '');
-    html += `<td>${week.grandAlloc || '–'}<span class="${gCls}">${week.grandActual || '–'}</span></td></tr>`;
+    html += `<td>${week.grandAlloc || '–'}<span class="${gCls}">${week.grandActual || '–'}</span></td><td></td></tr>`;
 
     // After the last week's total, add one Month Total row in the same columns
     if (week.weekNum === weeks.length && weeks.length > 1){
@@ -1209,7 +1321,7 @@ function renderReportHtml(weeks){
         html += `<td>${a || '–'}<span class="${cls}">${b || '–'}</span></td>`;
       });
       const mCls = monthGrandActual > monthGrandAlloc ? 'over' : (monthGrandActual < monthGrandAlloc ? 'under' : '');
-      html += `<td>${monthGrandAlloc || '–'}<span class="${mCls}">${monthGrandActual || '–'}</span></td></tr>`;
+      html += `<td>${monthGrandAlloc || '–'}<span class="${mCls}">${monthGrandActual || '–'}</span></td><td></td></tr>`;
     }
   });
   html += '</table></div>';
@@ -1254,68 +1366,66 @@ function varianceFontColor(allocated, actual){
 document.getElementById('downloadExcelBtn').onclick = async () => {
   if (!currentReportRows || typeof ExcelJS === 'undefined') return;
 
-  // Pivot logged entries into date -> person -> total actual hours that day
-  const actualMap = {};
-  currentReportRows.rows.forEach(r => {
-    if (!actualMap[r.date]) actualMap[r.date] = {};
-    actualMap[r.date][r.person] = (actualMap[r.date][r.person] || 0) + (r.actualHours || 0);
-  });
-
-  // Every calendar day in the selected period, not just logged ones
-  const allDates = [];
-  const cursor = new Date(currentReportRows.startDate);
-  const end = new Date(currentReportRows.endDate);
-  while (cursor <= end){
-    allDates.push(new Date(cursor));
-    cursor.setDate(cursor.getDate() + 1);
-  }
-
-  // Group into Mon–Sun week blocks, clipped to the selected period
-  const weeks = [];
-  let currentWeek = [];
-  allDates.forEach(d => {
-    if (d.getDay() === 1 && currentWeek.length){ // Monday starts a new block
-      weeks.push(currentWeek);
-      currentWeek = [];
-    }
-    currentWeek.push(d);
-  });
-  if (currentWeek.length) weeks.push(currentWeek);
-
-  const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const weeks = currentReportRows.weeks;
+  if (!weeks || weeks.length === 0) return;
 
   const workbook = new ExcelJS.Workbook();
   const ws = workbook.addWorksheet('Timesheet');
+  const totalCols = 2 + 2*STAFF.length + 2 + 1; // Date, Day, per-staff Alloc/Actual, Total Alloc/Actual, Covering
   ws.getColumn(1).width = 12;
   ws.getColumn(2).width = 6;
-  for (let i = 3; i <= 2 + 2*STAFF.length + 2; i++) ws.getColumn(i).width = 9;
+  for (let i = 3; i <= totalCols - 1; i++) ws.getColumn(i).width = 9;
+  ws.getColumn(totalCols).width = 26;
 
-  function computeMonthTotalsForExcel(){
-    const monthAlloc = STAFF.map(() => 0);
-    const monthActual = STAFF.map(() => 0);
-    weeks.forEach(week => {
-      week.forEach(dateObj => {
-        const ds = weekKey(dateObj);
-        STAFF.forEach((name, si) => {
-          monthAlloc[si] += allocatedHoursFor(name, dateObj);
-          monthActual[si] += (actualMap[ds] && actualMap[ds][name]) || 0;
-        });
-      });
+  function writeMonthSummary(){
+    if (weeks.length <= 1) return;
+    const { alloc, actual } = computeMonthTotals(weeks);
+    const monthRow = ws.addRow(['Month Total', '']);
+    ws.mergeCells(monthRow.number, 1, monthRow.number, 2);
+    monthRow.getCell(1).font = { name: 'Arial', bold: true, size: 10, color: { argb: 'FF1F3A3D' } };
+
+    let mc = 3;
+    let monthGrandAlloc = 0, monthGrandActual = 0;
+    STAFF.forEach((name, si) => {
+      const a = alloc[si], b = actual[si];
+      monthGrandAlloc += a; monthGrandActual += b;
+      const ca = monthRow.getCell(mc);
+      const cb = monthRow.getCell(mc+1);
+      ca.value = a || null;
+      cb.value = b || null;
+      ca.font = { name: 'Arial', bold: true, size: 10, color: { argb: 'FF1F3A3D' } };
+      ca.alignment = { horizontal: 'center' };
+      cb.alignment = { horizontal: 'center' };
+      const fill = varianceFill(a, b);
+      cb.fill = fill || { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6821A' } };
+      cb.font = { name: 'Arial', bold: true, size: 10, color: { argb: fill ? varianceFontColor(a, b) : 'FF1F3A3D' } };
+      mc += 2;
     });
-    return { monthAlloc, monthActual };
+    const mAllocCell = monthRow.getCell(mc);
+    const mActualCell = monthRow.getCell(mc+1);
+    mAllocCell.value = monthGrandAlloc || null;
+    mActualCell.value = monthGrandActual || null;
+    mAllocCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: 'FF1F3A3D' } };
+    const mFill = varianceFill(monthGrandAlloc, monthGrandActual);
+    mActualCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: mFill ? varianceFontColor(monthGrandAlloc, monthGrandActual) : 'FF1F3A3D' } };
+    if (mFill) mActualCell.fill = mFill;
+    for (let cc = 1; cc <= mc+1; cc++){
+      if (!monthRow.getCell(cc).fill) monthRow.getCell(cc).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6821A' } };
+    }
+    monthRow.getCell(totalCols).value = '';
   }
 
   weeks.forEach((week, wi) => {
     // Week label row
     const labelRow = ws.addRow([`WEEK-${wi+1}`]);
     ws.mergeCells(labelRow.number, 1, labelRow.number, 2);
-    for (let c = 1; c <= 2 + 2*STAFF.length + 2; c++){
+    for (let c = 1; c <= totalCols; c++){
       const cell = labelRow.getCell(c);
       cell.fill = FILL_WEEK_LABEL;
       cell.font = { name: 'Arial', bold: true, size: 11 };
     }
 
-    // Header row (names, merged across Alloc/Actual)
+    // Header row
     const headerRow = ws.addRow(['Date', 'Day']);
     let c = 3;
     STAFF.forEach(name => {
@@ -1325,14 +1435,15 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
     });
     headerRow.getCell(c).value = 'Total';
     ws.mergeCells(headerRow.number, c, headerRow.number, c+1);
-    for (let cc = 1; cc <= c+1; cc++){
+    headerRow.getCell(c+2).value = 'Covering';
+    for (let cc = 1; cc <= c+2; cc++){
       const cell = headerRow.getCell(cc);
       cell.fill = FILL_HEADER;
       cell.font = { name: 'Arial', bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
     }
 
-    // Sub-header row (Alloc / Actual)
+    // Sub-header row
     const subRow = ws.addRow(['', '']);
     c = 3;
     STAFF.forEach(() => {
@@ -1342,65 +1453,55 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
     });
     subRow.getCell(c).value = 'Alloc';
     subRow.getCell(c+1).value = 'Actual';
-    for (let cc = 1; cc <= c+1; cc++){
+    for (let cc = 1; cc <= c+2; cc++){
       const cell = subRow.getCell(cc);
       cell.fill = FILL_HEADER;
       cell.font = { name: 'Arial', italic: true, size: 8, color: { argb: 'FFFFFFFF' } };
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
     }
 
-    const weekAllocTotals = STAFF.map(() => 0);
-    const weekActualTotals = STAFF.map(() => 0);
-
-    week.forEach(dateObj => {
-      const ds = weekKey(dateObj);
-      const weekdayJs = dateObj.getDay();
-      const dayName = DAY_NAMES[weekdayJs === 0 ? 6 : weekdayJs - 1];
-
-      const dataRow = ws.addRow([ds, dayName]);
+    week.days.forEach(day => {
+      const dataRow = ws.addRow([day.date, day.dayName]);
       dataRow.getCell(1).font = { name: 'Arial', size: 10 };
       dataRow.getCell(2).font = { name: 'Arial', size: 10 };
       dataRow.getCell(1).border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
       dataRow.getCell(2).border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
 
       let cc = 3;
-      let dayAllocTotal = 0, dayActualTotal = 0;
-      STAFF.forEach((name, si) => {
-        const allocated = allocatedHoursFor(name, dateObj);
-        const actual = (actualMap[ds] && actualMap[ds][name]) || 0;
-        weekAllocTotals[si] += allocated;
-        weekActualTotals[si] += actual;
-        dayAllocTotal += allocated;
-        dayActualTotal += actual;
-
+      day.perPerson.forEach(p => {
         const allocCell = dataRow.getCell(cc);
         const actualCell = dataRow.getCell(cc+1);
-        allocCell.value = allocated || null;
-        actualCell.value = actual || null;
+        allocCell.value = p.allocated || null;
+        actualCell.value = p.actual || null;
         allocCell.font = { name: 'Arial', size: 10 };
         allocCell.alignment = { horizontal: 'center' };
         actualCell.alignment = { horizontal: 'center' };
         allocCell.border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
         actualCell.border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
-
-        const fill = varianceFill(allocated, actual);
+        const fill = varianceFill(p.allocated, p.actual);
         if (fill) actualCell.fill = fill;
-        actualCell.font = { name: 'Arial', size: 10, bold: !!fill, color: { argb: varianceFontColor(allocated, actual) } };
+        actualCell.font = { name: 'Arial', size: 10, bold: !!fill, color: { argb: varianceFontColor(p.allocated, p.actual) } };
         cc += 2;
       });
 
       const dayAllocCell = dataRow.getCell(cc);
       const dayActualCell = dataRow.getCell(cc+1);
-      dayAllocCell.value = dayAllocTotal || null;
-      dayActualCell.value = dayActualTotal || null;
+      dayAllocCell.value = day.dayAlloc || null;
+      dayActualCell.value = day.dayActual || null;
       dayAllocCell.font = { name: 'Arial', bold: true, size: 10 };
       dayAllocCell.alignment = { horizontal: 'center' };
       dayActualCell.alignment = { horizontal: 'center' };
       dayAllocCell.border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
       dayActualCell.border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
-      const dayFill = varianceFill(dayAllocTotal, dayActualTotal);
+      const dayFill = varianceFill(day.dayAlloc, day.dayActual);
       if (dayFill) dayActualCell.fill = dayFill;
-      dayActualCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: varianceFontColor(dayAllocTotal, dayActualTotal) } };
+      dayActualCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: varianceFontColor(day.dayAlloc, day.dayActual) } };
+
+      const coveringCell = dataRow.getCell(cc+2);
+      coveringCell.value = day.covering.length ? day.covering.join('; ') : '';
+      coveringCell.font = { name: 'Arial', size: 9, color: { argb: 'FFF5A623' } };
+      coveringCell.alignment = { horizontal: 'left', wrapText: true };
+      coveringCell.border = { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER };
     });
 
     // Week total row
@@ -1409,10 +1510,8 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
     totalRow.getCell(1).font = { name: 'Arial', bold: true, size: 10 };
 
     let tc = 3;
-    let grandAlloc = 0, grandActual = 0;
     STAFF.forEach((name, si) => {
-      const a = weekAllocTotals[si], b = weekActualTotals[si];
-      grandAlloc += a; grandActual += b;
+      const a = week.weekAlloc[si], b = week.weekActual[si];
       const ca = totalRow.getCell(tc);
       const cb = totalRow.getCell(tc+1);
       ca.value = a || null;
@@ -1427,49 +1526,18 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
     });
     const gAllocCell = totalRow.getCell(tc);
     const gActualCell = totalRow.getCell(tc+1);
-    gAllocCell.value = grandAlloc || null;
-    gActualCell.value = grandActual || null;
+    gAllocCell.value = week.grandAlloc || null;
+    gActualCell.value = week.grandActual || null;
     gAllocCell.font = { name: 'Arial', bold: true, size: 10 };
-    const gFill = varianceFill(grandAlloc, grandActual);
-    gActualCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: varianceFontColor(grandAlloc, grandActual) } };
+    const gFill = varianceFill(week.grandAlloc, week.grandActual);
+    gActualCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: varianceFontColor(week.grandAlloc, week.grandActual) } };
     if (gFill) gActualCell.fill = gFill;
-    for (let cc = 1; cc <= tc+1; cc++){
+    for (let cc = 1; cc <= tc+2; cc++){
       if (!totalRow.getCell(cc).fill) totalRow.getCell(cc).fill = FILL_TOTALROW;
     }
 
     if (wi === weeks.length - 1 && weeks.length > 1){
-      const { monthAlloc, monthActual } = computeMonthTotalsForExcel();
-      const monthRow = ws.addRow(['Month Total', '']);
-      ws.mergeCells(monthRow.number, 1, monthRow.number, 2);
-      monthRow.getCell(1).font = { name: 'Arial', bold: true, size: 10, color: { argb: 'FF1F3A3D' } };
-
-      let mc = 3;
-      let monthGrandAlloc = 0, monthGrandActual = 0;
-      STAFF.forEach((name, si) => {
-        const a = monthAlloc[si], b = monthActual[si];
-        monthGrandAlloc += a; monthGrandActual += b;
-        const ca = monthRow.getCell(mc);
-        const cb = monthRow.getCell(mc+1);
-        ca.value = a || null;
-        cb.value = b || null;
-        ca.font = { name: 'Arial', bold: true, size: 10, color: { argb: 'FF1F3A3D' } };
-        ca.alignment = { horizontal: 'center' };
-        cb.alignment = { horizontal: 'center' };
-        const fill = varianceFill(a, b);
-        cb.fill = fill || { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6821A' } };
-        cb.font = { name: 'Arial', bold: true, size: 10, color: { argb: fill ? varianceFontColor(a, b) : 'FF1F3A3D' } };
-        mc += 2;
-      });
-      const mAllocCell = monthRow.getCell(mc);
-      const mActualCell = monthRow.getCell(mc+1);
-      mAllocCell.value = monthGrandAlloc || null;
-      mActualCell.value = monthGrandActual || null;
-      mAllocCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: 'FF1F3A3D' } };
-      const mFill = varianceFill(monthGrandAlloc, monthGrandActual);
-      mActualCell.font = { name: 'Arial', bold: true, size: 10, color: { argb: mFill ? varianceFontColor(monthGrandAlloc, monthGrandActual) : 'FF1F3A3D' } };
-      for (let cc = 1; cc <= mc+1; cc++){
-        if (!monthRow.getCell(cc).fill) monthRow.getCell(cc).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6821A' } };
-      }
+      writeMonthSummary();
     }
 
     ws.addRow([]); // spacer between weeks
@@ -1485,6 +1553,7 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
   r2.getCell(1).font = { name: 'Arial', italic: true, size: 9 };
   r2.getCell(1).fill = FILL_UNDER;
   ws.addRow(['No fill = matched schedule exactly']).getCell(1).font = { name: 'Arial', italic: true, size: 9 };
+  ws.addRow(['Covering column = who covered for whom that day, and how many hours']).getCell(1).font = { name: 'Arial', italic: true, size: 9 };
 
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -1519,10 +1588,47 @@ function renderPinFields(){
     row.style.marginBottom = '10px';
     row.innerHTML = `
       <label>${name}'s PIN</label>
-      <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="pin-input" data-name="${name}" value="${staffPins[name] || ''}" placeholder="4 digits">
+      <div class="row" style="gap:8px;">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="pin-input" data-name="${name}" value="${staffPins[name] || ''}" placeholder="4 digits" style="flex:1; min-width:0;">
+        <button class="btn danger remove-staff-btn" data-name="${name}" style="flex:0 0 auto; padding:10px 14px; white-space:nowrap;">Remove</button>
+      </div>
     `;
     el.appendChild(row);
   });
+
+  el.querySelectorAll('.remove-staff-btn').forEach(btn => {
+    btn.onclick = () => removeStaffMember(btn.dataset.name);
+  });
+}
+
+async function removeStaffMember(name){
+  if (!confirm(`Remove ${name} from the staff list? Their PIN will also be removed. This does not delete their past logged hours or historical reports.`)) return;
+
+  const statusEl = document.getElementById('pinStatus');
+  const prevStaff = [...STAFF];
+  const prevPins = { ...staffPins };
+
+  STAFF = STAFF.filter(n => n !== name);
+  delete staffPins[name];
+
+  statusEl.className = 'status';
+  statusEl.textContent = 'Removing…';
+  try {
+    await setDoc(doc(db, 'rota', 'staff_list'), { names: STAFF });
+    await setDoc(doc(db, 'staff_pins', 'all'), staffPins);
+    statusEl.className = 'status ok';
+    statusEl.textContent = `${name} removed.`;
+    renderPersonStrip();
+    renderPinFields();
+    if (currentPerson === name) currentPerson = STAFF[0] || null;
+    if (viewPerson === name) viewPerson = STAFF[0];
+  } catch(e) {
+    STAFF = prevStaff;
+    staffPins = prevPins;
+    statusEl.className = 'status err';
+    statusEl.textContent = 'Could not remove: ' + e.message;
+    renderPinFields();
+  }
 }
 
 document.getElementById('savePinsBtn').onclick = async () => {
@@ -1595,15 +1701,40 @@ async function refreshWeek(){
   loadDayIntoForm();
 }
 
+let currentViewSubtab = 'staffview';
+
+let viewDataLoaded = false;
+
 function setEditorTab(tab){
   document.querySelectorAll('.editor-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  ['shifts','staffview','dayview','timelineview','report','addstaff','pins'].forEach(t => {
+  ['shifts','viewschedules','report','addstaff'].forEach(t => {
     document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
   });
-  if (tab === 'staffview') renderViewStaffTab();
-  if (tab === 'dayview') renderViewDayTab();
-  if (tab === 'timelineview') renderViewTimelineTab();
+  if (tab === 'viewschedules'){
+    renderViewWeekLabel();
+    if (!viewDataLoaded){
+      viewDataLoaded = true;
+      resolveViewWeekData().then(() => setViewSubtab(currentViewSubtab));
+    } else {
+      setViewSubtab(currentViewSubtab);
+    }
+  }
 }
+
+function setViewSubtab(subtab){
+  currentViewSubtab = subtab;
+  document.querySelectorAll('.view-subtab-btn').forEach(b => b.classList.toggle('active', b.dataset.subtab === subtab));
+  ['staffview','dayview','timelineview'].forEach(t => {
+    document.getElementById(`subtab-${t}`).classList.toggle('hidden', t !== subtab);
+  });
+  if (subtab === 'staffview') renderViewStaffTab();
+  if (subtab === 'dayview') renderViewDayTab();
+  if (subtab === 'timelineview') renderViewTimelineTab();
+}
+
+document.querySelectorAll('.view-subtab-btn').forEach(btn => {
+  btn.onclick = () => setViewSubtab(btn.dataset.subtab);
+});
 
 document.querySelectorAll('.editor-tab-btn').forEach(btn => {
   btn.onclick = () => setEditorTab(btn.dataset.tab);
@@ -1885,8 +2016,8 @@ document.getElementById('saveBtn').onclick = async () => {
     if (pc.coverPerson){
       const isDelivery = !!pc.shift.tag;
       const shiftToAdd = isDelivery
-        ? { start: "—", end: "—", tag: `Delivery (${pc.editHours}h)` }
-        : { start: pc.editStart, end: pc.editEnd };
+        ? { start: "—", end: "—", tag: `Delivery (${pc.editHours}h)`, coveringFor: currentPerson }
+        : { start: pc.editStart, end: pc.editEnd, coveringFor: currentPerson };
       addShiftToPerson(pc.coverPerson, currentDayIdx, shiftToAdd);
       coveredCount++;
     }
