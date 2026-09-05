@@ -941,6 +941,7 @@ async function toggleLogPanel(btn){
       });
       statusEl.className = 'log-status ok';
       statusEl.textContent = 'Saved.';
+      setTimeout(() => { panel.classList.add('hidden'); }, 700);
       renderMyShiftsWeek();
       renderMonthView();
     } catch(e) {
