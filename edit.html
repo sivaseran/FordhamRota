@@ -153,12 +153,28 @@
     font-weight:800;
   }
   .grid-report-table td.bold{ font-weight:800; }
-  .grid-report-table td.covering-cell{
-    font-size:10px;
+  .covering-summary{
+    background:var(--navy-2);
+    border:1px solid var(--amber-dim);
+    border-radius:10px;
+    padding:12px 14px;
+    margin:10px 0;
+  }
+  .covering-summary-title{
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
     color:var(--amber);
-    font-weight:700;
-    max-width:110px;
-    white-space:normal;
+    margin-bottom:8px;
+  }
+  .covering-summary-row{
+    font-size:13px;
+    color:var(--cream);
+    padding:4px 0;
+  }
+  .covering-summary-row + .covering-summary-row{
+    border-top:1px dashed var(--off-line);
   }
   .grid-legend{
     font-size:10px;
@@ -1285,9 +1301,9 @@ function computeMonthTotals(weeks){
 function renderReportHtml(weeks){
   let html = '<div class="report-scroll"><table class="grid-report-table">';
   weeks.forEach(week => {
-    html += `<tr class="grid-week-label"><td colspan="${2 + 2*STAFF.length + 2 + 1}">WEEK-${week.weekNum}</td></tr>`;
-    html += '<tr class="grid-header"><td>Date</td><td>Day</td>' + STAFF.map(n => `<td>${n}</td>`).join('') + '<td>Total</td><td>Covering</td></tr>';
-    html += '<tr class="grid-subheader"><td></td><td></td>' + STAFF.map(() => `<td><span>Alloc</span><span>Actual</span></td>`).join('') + `<td><span>Alloc</span><span>Actual</span></td><td></td></tr>`;
+    html += `<tr class="grid-week-label"><td colspan="${2 + 2*STAFF.length + 2}">WEEK-${week.weekNum}</td></tr>`;
+    html += '<tr class="grid-header"><td>Date</td><td>Day</td>' + STAFF.map(n => `<td>${n}</td>`).join('') + '<td>Total</td></tr>';
+    html += '<tr class="grid-subheader"><td></td><td></td>' + STAFF.map(() => `<td><span>Alloc</span><span>Actual</span></td>`).join('') + `<td><span>Alloc</span><span>Actual</span></td></tr>`;
 
     week.days.forEach(day => {
       html += `<tr><td>${day.date}</td><td>${day.dayName}</td>`;
@@ -1296,8 +1312,7 @@ function renderReportHtml(weeks){
         html += `<td>${p.allocated || '–'}<span class="${cls}">${p.actual || '–'}</span></td>`;
       });
       const totCls = day.dayActual > day.dayAlloc ? 'over' : (day.dayActual < day.dayAlloc ? 'under' : '');
-      html += `<td class="bold">${day.dayAlloc || '–'}<span class="${totCls}">${day.dayActual || '–'}</span></td>`;
-      html += `<td class="covering-cell">${day.covering.length ? day.covering.join('<br>') : '–'}</td></tr>`;
+      html += `<td class="bold">${day.dayAlloc || '–'}<span class="${totCls}">${day.dayActual || '–'}</span></td></tr>`;
     });
 
     html += `<tr class="grid-total-row"><td colspan="2">Week Total</td>`;
@@ -1307,7 +1322,7 @@ function renderReportHtml(weeks){
       html += `<td>${a || '–'}<span class="${cls}">${b || '–'}</span></td>`;
     });
     const gCls = week.grandActual > week.grandAlloc ? 'over' : (week.grandActual < week.grandAlloc ? 'under' : '');
-    html += `<td>${week.grandAlloc || '–'}<span class="${gCls}">${week.grandActual || '–'}</span></td><td></td></tr>`;
+    html += `<td>${week.grandAlloc || '–'}<span class="${gCls}">${week.grandActual || '–'}</span></td></tr>`;
 
     // After the last week's total, add one Month Total row in the same columns
     if (week.weekNum === weeks.length && weeks.length > 1){
@@ -1321,10 +1336,24 @@ function renderReportHtml(weeks){
         html += `<td>${a || '–'}<span class="${cls}">${b || '–'}</span></td>`;
       });
       const mCls = monthGrandActual > monthGrandAlloc ? 'over' : (monthGrandActual < monthGrandAlloc ? 'under' : '');
-      html += `<td>${monthGrandAlloc || '–'}<span class="${mCls}">${monthGrandActual || '–'}</span></td><td></td></tr>`;
+      html += `<td>${monthGrandAlloc || '–'}<span class="${mCls}">${monthGrandActual || '–'}</span></td></tr>`;
     }
   });
   html += '</table></div>';
+
+  // Covering info shown separately (not as a table column) so it's never hidden behind horizontal scroll
+  const coveringEntries = [];
+  weeks.forEach(week => {
+    week.days.forEach(day => {
+      day.covering.forEach(c => coveringEntries.push(`${day.date} (${day.dayName}): ${c}`));
+    });
+  });
+  if (coveringEntries.length){
+    html += '<div class="covering-summary"><div class="covering-summary-title">Covering this period</div>';
+    html += coveringEntries.map(c => `<div class="covering-summary-row">${c}</div>`).join('');
+    html += '</div>';
+  }
+
   html += '<div class="grid-legend"><span class="over">Over</span> = worked more than scheduled &nbsp; <span class="under">Under</span> = worked less &nbsp; plain = matched</div>';
   return html;
 }
@@ -1544,6 +1573,22 @@ document.getElementById('downloadExcelBtn').onclick = async () => {
   });
 
   // Legend
+  // Covering summary (quick scan, independent of the per-row column)
+  const coveringEntries = [];
+  weeks.forEach(week => {
+    week.days.forEach(day => {
+      day.covering.forEach(c => coveringEntries.push(`${day.date} (${day.dayName}): ${c}`));
+    });
+  });
+  if (coveringEntries.length){
+    const covTitle = ws.addRow(['Covering this period:']);
+    covTitle.getCell(1).font = { name: 'Arial', bold: true, size: 9, color: { argb: 'FFF5A623' } };
+    coveringEntries.forEach(c => {
+      ws.addRow([c]).getCell(1).font = { name: 'Arial', size: 9 };
+    });
+    ws.addRow([]);
+  }
+
   const legendTitle = ws.addRow(['Legend:']);
   legendTitle.getCell(1).font = { name: 'Arial', bold: true, size: 9 };
   const r1 = ws.addRow(['Red = worked MORE than scheduled (over-utilized)']);
