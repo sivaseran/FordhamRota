@@ -741,7 +741,7 @@ async function fetchLoggedTime(docId){
   } catch(e) { return null; }
 }
 
-const DEFAULT_TIMELOG_REASONS = ["Manager's request", "Extra job", "Delivery delay", "Promotion set-up"];
+const DEFAULT_TIMELOG_REASONS = ["Late", "Early", "On request"];
 
 async function fetchTimeLogReasons(){
   if (!firebaseReady) return DEFAULT_TIMELOG_REASONS;
@@ -878,7 +878,9 @@ async function toggleLogPanel(btn){
     };
   }
 
+  startInput.oninput = updateReasonUI;
   startInput.onchange = updateReasonUI;
+  endInput.oninput = updateReasonUI;
   endInput.onchange = updateReasonUI;
   await updateReasonUI();
 
@@ -907,11 +909,12 @@ async function toggleLogPanel(btn){
     let reason = null;
 
     if (deviates){
+      await updateReasonUI(); // ensure the dropdown is actually rendered before checking it
       const sel = reasonArea.querySelector(`#reasonSelect-${docId}`);
       const otherInput = reasonArea.querySelector(`#reasonOther-${docId}`);
       if (!sel || !sel.value){
         statusEl.className = 'log-status err';
-        statusEl.textContent = 'Time differs from scheduled — please select a reason.';
+        statusEl.textContent = 'Please select a reason below, then tap Save again.';
         return;
       }
       if (sel.value === '__other__'){
