@@ -741,7 +741,7 @@ async function fetchLoggedTime(docId){
   } catch(e) { return null; }
 }
 
-const DEFAULT_TIMELOG_REASONS = ["Late", "Early", "On request"];
+const DEFAULT_TIMELOG_REASONS = ["Late", "Early", "Extended", "On request"];
 
 async function fetchTimeLogReasons(){
   if (!firebaseReady) return DEFAULT_TIMELOG_REASONS;
@@ -909,12 +909,18 @@ async function toggleLogPanel(btn){
     let reason = null;
 
     if (deviates){
-      await updateReasonUI(); // ensure the dropdown is actually rendered before checking it
-      const sel = reasonArea.querySelector(`#reasonSelect-${docId}`);
-      const otherInput = reasonArea.querySelector(`#reasonOther-${docId}`);
-      if (!sel || !sel.value){
+      let sel = reasonArea.querySelector(`#reasonSelect-${docId}`);
+      if (!sel){
+        // Dropdown never appeared (listener missed) — show it now, ask them to try Save again
+        await updateReasonUI();
         statusEl.className = 'log-status err';
         statusEl.textContent = 'Please select a reason below, then tap Save again.';
+        return;
+      }
+      const otherInput = reasonArea.querySelector(`#reasonOther-${docId}`);
+      if (!sel.value){
+        statusEl.className = 'log-status err';
+        statusEl.textContent = 'Please select a reason.';
         return;
       }
       if (sel.value === '__other__'){
