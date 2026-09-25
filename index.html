@@ -8,7 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fordham Service Station">
 <meta name="theme-color" content="#0F1B2D">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230F1B2D'/><text x='50' y='64' font-size='54' text-anchor='middle' fill='%23F5A623' font-family='Arial' font-weight='900'>R</text></svg>">
+<link rel="apple-touch-icon" href="icon-staff-192.png">
+<link rel="manifest" href="manifest-staff.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-staff-192.png">
 <style>
   :root{
     --navy:#0F1B2D;
@@ -319,6 +321,52 @@
     color:var(--amber);
     margin-top:10px;
     font-weight:700;
+  }
+  .add-shift-btn{
+    width:100%;
+    background:none;
+    border:1px dashed var(--off-line);
+    color:var(--off);
+    padding:10px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:700;
+    margin-top:8px;
+  }
+  .add-shift-panel{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--off-line);
+  }
+  .add-shift-panel input[type=date]{
+    width:100%;
+    background:var(--navy);
+    border:1px solid var(--off-line);
+    color:var(--cream);
+    padding:14px;
+    border-radius:10px;
+    font-size:16px;
+    margin-bottom:12px;
+  }
+  .covering-name-input{
+    width:100%;
+    background:var(--navy);
+    border:1px solid var(--amber-dim);
+    color:var(--cream);
+    padding:14px;
+    border-radius:10px;
+    font-size:16px;
+    margin-top:8px;
+  }
+  .extra-shift-tag{
+    font-size:10px;
+    text-transform:uppercase;
+    color:var(--off);
+    font-weight:800;
+    border:1px solid var(--off-line);
+    padding:2px 6px;
+    border-radius:100px;
+    margin-left:6px;
   }
   .month-nav-btn{
     background:var(--navy-2);
@@ -840,6 +888,25 @@ async function renderMyShiftsWeek(){
       }
     }
 
+    const extraShifts = await fetchExtraShiftsForDate(loggedInPerson, dateStr);
+    extraShifts.forEach(ex => {
+      const tagLabel = ex.extraType === 'covering' ? `Covering ${ex.coveringName || ''}` : 'Extra shift';
+      bodyHtml += `
+        <div class="shift-entry">
+          <div class="shift-entry-top">
+            <span class="shift-entry-time">${ex.actualStart} – ${ex.actualEnd}<span class="extra-shift-tag">${tagLabel}</span></span>
+            <button class="shift-entry-btn logged" data-extra-doc="${ex.docId}" data-date="${dateStr}">Edit</button>
+          </div>
+          <div class="log-panel hidden" id="panel-${ex.docId}"></div>
+        </div>
+      `;
+    });
+
+    bodyHtml += `
+      <button class="add-shift-btn" data-add-date="${dateStr}">+ Add shift</button>
+      <div class="add-shift-panel hidden" id="addpanel-${dateStr}"></div>
+    `;
+
     card.innerHTML = bodyHtml;
     el.appendChild(card);
   }
@@ -847,6 +914,171 @@ async function renderMyShiftsWeek(){
   el.querySelectorAll('.shift-entry-btn[data-doc]').forEach(btn => {
     btn.onclick = () => toggleLogPanel(btn);
   });
+  el.querySelectorAll('.shift-entry-btn[data-extra-doc]').forEach(btn => {
+    btn.onclick = () => toggleExtraShiftPanel(btn.dataset.extraDoc, btn.dataset.date);
+  });
+  el.querySelectorAll('.add-shift-btn').forEach(btn => {
+    btn.onclick = () => toggleAddShiftPanel(btn.dataset.addDate);
+  });
+}
+
+async function fetchExtraShiftsForDate(person, dateStr){
+  if (!firebaseReady) return [];
+  try {
+    const q = query(collection(fbDb, 'timesheets'), where('person','==',person), where('date','==',dateStr), where('isExtra','==',true));
+    const snap = await getDocs(q);
+    const results = [];
+    snap.forEach(docSnap => results.push({ ...docSnap.data(), docId: docSnap.id }));
+    results.sort((a,b) => (a.actualStart || '').localeCompare(b.actualStart || ''));
+    return results;
+  } catch(e) {
+    console.warn('Could not fetch extra shifts', e);
+    return [];
+  }
+}
+
+function shopHoursForDate(dateStr){
+  return { open: 5*60+30, close: 22*60, label: "22:00" };
+}
+
+async function toggleAddShiftPanel(defaultDateStr){
+  const panel = document.getElementById(`addpanel-${defaultDateStr}`);
+  const isHidden = panel.classList.contains('hidden');
+  document.querySelectorAll('.log-panel, .add-shift-panel').forEach(p => p.classList.add('hidden'));
+  if (!isHidden) return;
+
+  panel.innerHTML = `
+    <label>Date</label>
+    <input type="date" class="extra-date-input" value="${defaultDateStr}">
+    <label>Start time</label>
+    <div class="row"><input type="time" class="extra-start-input"></div>
+    <label>End time</label>
+    <div class="row"><input type="time" class="extra-end-input"></div>
+    <label>Reason</label>
+    <select class="reason-select extra-type-select">
+      <option value="">Select a reason…</option>
+      <option value="extra">Extra shift</option>
+      <option value="covering">Covering</option>
+    </select>
+    <input type="text" class="covering-name-input hidden" placeholder="Who are you covering for?">
+    <button class="big-btn extra-save-btn" style="margin-top:12px;">Save</button>
+    <div class="log-status"></div>
+  `;
+  panel.classList.remove('hidden');
+
+  const typeSelect = panel.querySelector('.extra-type-select');
+  const coveringInput = panel.querySelector('.covering-name-input');
+  typeSelect.onchange = () => {
+    coveringInput.classList.toggle('hidden', typeSelect.value !== 'covering');
+  };
+
+  panel.querySelector('.extra-save-btn').onclick = async () => {
+    await saveExtraShift(panel, null, defaultDateStr);
+  };
+}
+
+async function toggleExtraShiftPanel(docId, dateStr){
+  const panel = document.getElementById(`panel-${docId}`);
+  const isHidden = panel.classList.contains('hidden');
+  document.querySelectorAll('.log-panel, .add-shift-panel').forEach(p => p.classList.add('hidden'));
+  if (!isHidden) return;
+
+  const existing = await fetchLoggedTime(docId);
+  panel.innerHTML = `
+    <label>Start time</label>
+    <div class="row"><input type="time" class="extra-start-input" value="${existing ? existing.actualStart : ''}"></div>
+    <label>End time</label>
+    <div class="row"><input type="time" class="extra-end-input" value="${existing ? existing.actualEnd : ''}"></div>
+    <label>Reason</label>
+    <select class="reason-select extra-type-select">
+      <option value="extra" ${existing && existing.extraType === 'extra' ? 'selected' : ''}>Extra shift</option>
+      <option value="covering" ${existing && existing.extraType === 'covering' ? 'selected' : ''}>Covering</option>
+    </select>
+    <input type="text" class="covering-name-input ${existing && existing.extraType === 'covering' ? '' : 'hidden'}" placeholder="Who are you covering for?" value="${existing && existing.coveringName ? existing.coveringName : ''}">
+    <button class="big-btn extra-save-btn" style="margin-top:12px;">Save</button>
+    <div class="log-status"></div>
+  `;
+  panel.classList.remove('hidden');
+
+  const typeSelect = panel.querySelector('.extra-type-select');
+  const coveringInput = panel.querySelector('.covering-name-input');
+  typeSelect.onchange = () => {
+    coveringInput.classList.toggle('hidden', typeSelect.value !== 'covering');
+  };
+
+  panel.querySelector('.extra-save-btn').onclick = async () => {
+    await saveExtraShift(panel, docId, dateStr);
+  };
+}
+
+async function saveExtraShift(panel, existingDocId, fallbackDateStr){
+  const statusEl = panel.querySelector('.log-status');
+  const dateInput = panel.querySelector('.extra-date-input');
+  const dateStr = dateInput ? dateInput.value : fallbackDateStr;
+  const actualStart = panel.querySelector('.extra-start-input').value;
+  const actualEnd = panel.querySelector('.extra-end-input').value;
+  const typeSelect = panel.querySelector('.extra-type-select');
+  const coveringInput = panel.querySelector('.covering-name-input');
+
+  if (!dateStr){
+    statusEl.className = 'log-status err';
+    statusEl.textContent = 'Pick a date.';
+    return;
+  }
+  if (!actualStart || !actualEnd){
+    statusEl.className = 'log-status err';
+    statusEl.textContent = 'Enter both start and end time.';
+    return;
+  }
+  const { open, close, label } = shopHoursForDate(dateStr);
+  const sm = toMinutes(actualStart), em = toMinutes(actualEnd);
+  if (sm === null || em === null || sm < open || sm > close || em < open || em > close || em <= sm){
+    statusEl.className = 'log-status err';
+    statusEl.textContent = `Time must be within business hours (05:30–${label}) and end after start.`;
+    return;
+  }
+  if (!typeSelect.value){
+    statusEl.className = 'log-status err';
+    statusEl.textContent = 'Select a reason.';
+    return;
+  }
+  const coveringName = typeSelect.value === 'covering' ? coveringInput.value.trim() : '';
+  if (typeSelect.value === 'covering' && !coveringName){
+    statusEl.className = 'log-status err';
+    statusEl.textContent = 'Type who you\'re covering for.';
+    return;
+  }
+
+  let docId = existingDocId;
+  if (!docId){
+    const existingExtras = await fetchExtraShiftsForDate(loggedInPerson, dateStr);
+    docId = `${loggedInPerson}_${dateStr}_extra_${existingExtras.length}`;
+  }
+
+  statusEl.className = 'log-status';
+  statusEl.textContent = 'Saving…';
+  try {
+    await setDoc(doc(fbDb, 'timesheets', docId), {
+      person: loggedInPerson, date: dateStr,
+      scheduledStart: null, scheduledEnd: null,
+      actualStart, actualEnd,
+      isExtra: true,
+      extraType: typeSelect.value,
+      coveringName: coveringName || null,
+      reason: typeSelect.value === 'covering' ? `Covering ${coveringName}` : 'Extra shift',
+      loggedAt: new Date().toISOString()
+    });
+    statusEl.className = 'log-status ok';
+    statusEl.textContent = 'Saved.';
+    setTimeout(() => {
+      panel.classList.add('hidden');
+      renderMyShiftsWeek();
+      renderMonthView();
+    }, 700);
+  } catch(e) {
+    statusEl.className = 'log-status err';
+    statusEl.textContent = 'Save failed: ' + e.message;
+  }
 }
 
 async function toggleLogPanel(btn){
@@ -1124,6 +1356,13 @@ document.getElementById('monthNext').onclick = () => {
     showHome();
   }
 })();
+</script>
+<script>
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration failed', err));
+    });
+  }
 </script>
 </body>
 </html>
