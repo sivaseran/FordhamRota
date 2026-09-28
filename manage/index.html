@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Manage Fordham">
 <link rel="apple-touch-icon" href="icon-manager-192.png">
-<link rel="manifest" href="manifest-admin.webmanifest">
+<link rel="manifest" href="manifest-admin.webmanifest?v=2">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-manager-192.png">
 <style>
   :root{
@@ -2172,7 +2172,7 @@ document.getElementById('saveBtn').onclick = async () => {
 <script>
   if ('serviceWorker' in navigator){
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js', { scope: './' }).catch(err => console.warn('SW registration failed', err));
+      navigator.serviceWorker.register('sw-manager-v2.js', { scope: './' }).catch(err => console.warn('SW registration failed', err));
     });
   }
 </script>
