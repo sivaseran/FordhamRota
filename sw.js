@@ -1,12 +1,10 @@
-// Manage Fordham's own service worker — separate file from the staff
-// app's, per-app cache namespace, deliberately does no caching.
-// This app depends on live Firestore data (schedules, PINs, timesheets),
-// so caching responses here risks serving stale data. Exists purely to
-// satisfy Chrome's installability requirement (a service worker that
-// controls the page with a fetch handler).
-const CACHE_NAME = 'manage-fordham-v1';
+// Shift Fordham staff app service worker — isolated from the manager app
+// at /FordhamRota/manage/, which has its own service worker and cache name.
+const CACHE_NAME = 'shift-fordham-v1';
 
-self.addEventListener('install', (event) => {
+// This app relies on live Firestore data, so requests are deliberately
+// passed through to the network rather than cached by this worker.
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
