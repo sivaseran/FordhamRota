@@ -1,10 +1,15 @@
-// Shift Fordham staff app service worker — isolated from the manager app
-// at /FordhamRota/manage/, which has its own service worker and cache name.
+// Shift Fordham's own service worker — separate from the Manage app's
+// (which now lives in its own /manage/ folder with its own sw.js).
 const CACHE_NAME = 'shift-fordham-v1';
 
-// This app relies on live Firestore data, so requests are deliberately
-// passed through to the network rather than cached by this worker.
-self.addEventListener('install', () => {
+// Minimal service worker — required for Android Chrome PWA installability.
+// Deliberately does NOT cache anything: this app relies on live Firestore
+// data (schedules, PINs, timesheets), and caching responses here risks
+// serving stale data. This worker exists purely to satisfy Chrome's
+// installability requirement of "a service worker that controls the page
+// with a fetch handler" — every request just passes straight to the network.
+
+self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 

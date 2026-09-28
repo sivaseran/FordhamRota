@@ -1,10 +1,10 @@
 {
-  "id": "/FordhamRota/",
+  "id": "https://sivaseran.github.io/FordhamRota/",
   "name": "Shift Fordham",
   "short_name": "Shift Fordham",
   "description": "Log your shifts at Fordham Service Station",
-  "start_url": "/FordhamRota/",
-  "scope": "/FordhamRota/",
+  "start_url": "https://sivaseran.github.io/FordhamRota/",
+  "scope": "https://sivaseran.github.io/FordhamRota/",
   "display": "standalone",
   "background_color": "#0F1B2D",
   "theme_color": "#0F1B2D",
