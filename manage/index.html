@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Rota Editor</title>
+<title>Manage Fordham</title>
 <meta name="theme-color" content="#0F1B2D">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -316,16 +316,16 @@
   }
   .view-day-card.today .view-day-total{ color:var(--amber); }
 
-  .tl-axis{ position:relative; height:14px; font-size:10px; color:var(--off); padding:0 2px 8px; margin-left:64px; }
+  .tl-axis{ position:relative; height:14px; font-size:10px; color:var(--off); padding:0 2px 8px; margin-left:86px; }
   .tl-axis span{ position:absolute; white-space:nowrap; }
   .tl-row{ margin-bottom:14px; }
   .tl-row-top{ display:flex; align-items:center; }
-  .tl-label{ width:64px; flex:0 0 64px; font-size:13px; font-weight:800; color:var(--amber); }
+  .tl-label{ width:82px; flex:0 0 82px; font-size:11.5px; font-weight:800; color:var(--amber); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:4px; }
   .tl-track{ position:relative; flex:1; height:26px; background:var(--navy-2); border:1px solid var(--off-line); border-radius:6px; }
   .tl-bar{ position:absolute; top:2px; bottom:2px; background:var(--amber); border-radius:4px; }
   .tl-bar.tl-active{ background:#7FD858; }
   .tl-now-line{ position:absolute; top:-3px; bottom:-3px; width:2px; background:#7FD858; z-index:2; }
-  .tl-caption{ font-size:11px; color:var(--off); margin:5px 0 0 68px; }
+  .tl-caption{ font-size:11px; color:var(--off); margin:5px 0 0 90px; }
   .tl-off-row{ display:flex; align-items:center; }
   .tl-off-track{
     flex:1; height:26px; border:1px solid var(--off-line); border-radius:6px;
@@ -501,18 +501,188 @@
     margin-top:8px;
   }
   .total-preview b{color:var(--amber); font-size:16px;}
+
+
+  /* ===== Planning workspace (new Edit tab) ===== */
+  .planner-shell{margin-bottom:14px;}
+  .planner-week-nav{display:grid;grid-template-columns:48px 1fr 48px;gap:8px;align-items:center;margin-bottom:10px;}
+  .planner-week-btn{height:44px;border:1px solid var(--off-line);border-radius:10px;background:var(--navy-2);color:var(--cream);font-size:22px;font-weight:800;}
+  .planner-week-label{text-align:center;font-size:14px;font-weight:800;color:var(--cream);}
+  .planner-day-strip{display:flex;gap:5px;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch;}
+  .planner-day-strip::-webkit-scrollbar{display:none;}
+  .planner-day-btn{min-width:58px;padding:9px 5px;border-radius:9px;border:1px solid var(--off-line);background:var(--navy-2);color:var(--off);font-size:11px;font-weight:800;line-height:1.25;}
+  .planner-day-btn.active{background:var(--amber);border-color:var(--amber);color:var(--navy);}
+  .planner-title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:2px 0 10px;}
+  .planner-title{font-size:15px;font-weight:800;color:var(--cream);}
+  .planner-help{font-size:11px;color:var(--off);margin-top:2px;}
+  .planner-person{background:var(--navy-2);border:1px solid var(--off-line);border-radius:11px;padding:9px 10px;margin-bottom:7px;}
+  .planner-person-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .planner-person-name{font-size:14px;font-weight:800;color:var(--cream);min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .planner-person-head .planner-mini-btn{margin-left:auto;flex:0 0 auto;}
+  .planner-dayoff{font-size:12px;color:var(--off);font-style:italic;margin-left:auto;margin-right:6px;}
+  .planner-shifts{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;}
+  .planner-shift{display:flex;align-items:center;gap:4px;padding:5px;border:1px solid var(--off-line);border-radius:8px;background:var(--navy);min-width:0;}
+  .planner-shift input[type=time]{width:104px;padding:6px 5px;font-size:13px;margin:0;}
+  .planner-shift-sep{color:var(--off);font-weight:800;}
+  .planner-mini-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--amber-dim);background:transparent;color:var(--amber);font-size:21px;line-height:1;font-weight:700;}
+  .planner-mini-btn.remove{border-color:transparent;color:var(--red);font-size:18px;}
+  .planner-delivery-shift{position:relative;padding-top:13px;}
+  .planner-delivery-label{position:absolute;left:8px;top:-8px;padding:1px 6px;border-radius:5px;background:#8f4dda;color:#fff;font-size:9px;font-weight:900;letter-spacing:.02em;line-height:1.4;}
+  .planner-fixed-time{display:flex;align-items:center;justify-content:center;min-width:104px;height:32px;padding:0 6px;border-radius:6px;background:rgba(255,255,255,.025);color:var(--cream);font-size:13px;}
+  .planner-limit{font-size:10px;color:var(--off);width:100%;}
+  .planner-timeline-card{background:var(--navy-2);border:1px solid var(--off-line);border-radius:12px;padding:10px;margin-top:12px;}
+  .planner-timeline-title{font-size:14px;font-weight:800;margin-bottom:7px;}
+  .planner-legend{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:9px;color:var(--off);margin-bottom:8px;}
+  .planner-key{display:inline-flex;align-items:center;gap:4px;}
+  .planner-swatch{width:12px;height:12px;border-radius:3px;border:1px solid rgba(255,255,255,.12);}
+  .planner-swatch.one,.pcell.one{background:#f4d327;}
+  .planner-swatch.two,.pcell.two{background:#3daef2;}
+  .planner-swatch.three,.pcell.three{background:#45d879;}
+  .planner-swatch.zero,.pcell.zero{background:#ef4f58;}
+  .planner-swatch.delivery,.pcell.delivery{background:repeating-linear-gradient(135deg,#914ad8 0 5px,#b96df0 5px 10px);}
+  .planner-swatch.break,.pcell.break{background:repeating-linear-gradient(135deg,#29384c 0 5px,#1b2635 5px 10px);}
+  .planner-grid-scroll{overflow:hidden;border:1px solid var(--off-line);border-radius:9px;width:100%;}
+  /* The outer grid is ALWAYS one equal-width column per hour.
+     Exceptional :30 / :15 / :45 changes subdivide only inside that hour. */
+  .planner-grid{display:grid;grid-template-columns:78px repeat(18,minmax(0,1fr));width:100%;min-width:0;background:var(--navy);}
+  .phead,.plabel{height:27px;min-width:0;border-right:1px solid var(--off-line);border-bottom:1px solid var(--off-line);display:flex;align-items:center;font-size:8px;overflow:visible;}
+  .phead{background:var(--teal);color:var(--cream);font-weight:800;}
+  .phead.staff-head{justify-content:center;overflow:hidden;}
+  .planner-hour-head{position:relative;justify-content:flex-start;color:transparent;}
+  .planner-hour-head .hour-line-label{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);z-index:4;color:var(--cream);font-size:8px;font-weight:800;line-height:1;background:var(--teal);padding:0 1px;pointer-events:none;}
+  .planner-hour-head.last-hour::after{content:'23';position:absolute;right:0;top:50%;transform:translate(50%,-50%);z-index:4;color:var(--cream);font-size:8px;font-weight:800;line-height:1;background:var(--teal);padding:0 1px;}
+  .plabel{justify-content:flex-start;padding:0 4px;background:var(--navy-2);color:var(--cream);font-weight:800;font-size:8px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
+  .phour{height:27px;min-width:0;border-right:1px solid var(--off-line);border-bottom:1px solid var(--off-line);display:grid;background:#182130;overflow:hidden;}
+  .phour.parts-1{grid-template-columns:1fr;}
+  .phour.parts-2{grid-template-columns:repeat(2,1fr);}
+  .phour.parts-4{grid-template-columns:repeat(4,1fr);}
+  .pcell{min-width:0;height:100%;display:flex;align-items:center;justify-content:center;font-size:8px;background:#182130;color:#0e1724;font-weight:900;overflow:hidden;}
+  .phour .pcell:not(:last-child){border-right:1px solid rgba(44,54,72,.95);}
+  .pcell.empty{background:#182130;}
+  .planner-available-label{background:var(--teal);color:var(--cream);font-weight:800;font-size:7px;line-height:1.05;text-align:left;padding-left:4px;white-space:normal;}
+  .planner-notice{margin-top:12px;padding:10px 11px;border-radius:9px;border:1px solid #8a5a18;background:#2a2114;color:#f0bf63;font-size:11px;line-height:1.35;}
+  .planner-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+  .planner-actions .btn{min-height:54px;font-size:12px;line-height:1.25;}
+  .planner-actions .btn.secondary{color:var(--cream);}
+  .planner-publish-note{display:block;color:var(--off);font-size:9px;font-weight:500;margin-top:3px;}
+  .planner-person-head{position:relative;}
+  .planner-add-menu{position:absolute;right:0;top:38px;z-index:15;display:flex;flex-direction:column;gap:4px;min-width:180px;padding:7px;border:1px solid var(--off-line);border-radius:9px;background:#111a27;box-shadow:0 8px 24px rgba(0,0,0,.35);}
+  .planner-add-menu button{border:1px solid var(--off-line);border-radius:7px;background:var(--navy-2);color:var(--cream);padding:8px 9px;text-align:left;font-size:11px;font-weight:700;}
+  .planner-add-menu button.delivery{color:#efd9ff;border-color:#7840aa;}
+  .planner-add-menu button:hover{border-color:var(--amber);}
+  .cover-review-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(5,10,16,.78);display:flex;align-items:center;justify-content:center;padding:16px;}
+  .cover-review-card{width:min(560px,100%);max-height:80vh;overflow:auto;background:var(--navy);border:1px solid var(--off-line);border-radius:14px;padding:16px;color:var(--cream);}
+  .cover-review-title{font-size:17px;font-weight:900;margin-bottom:5px;}
+  .cover-review-sub{font-size:11px;color:var(--off);line-height:1.4;margin-bottom:12px;}
+  .cover-review-item{padding:9px 10px;border:1px solid var(--off-line);border-radius:9px;background:var(--navy-2);margin-bottom:7px;font-size:12px;line-height:1.35;}
+  .cover-review-item b{color:var(--amber);}
+  .cover-review-uncovered{border-color:#7a3036;color:#ffb1b6;}
+  .cover-review-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+  .cover-review-actions .cancel{grid-column:1/-1;}
+  .planner-hour-head{font-size:8px;}
+  @media(max-width:520px){
+    .planner-shell{margin-left:-2px;margin-right:-2px;}
+    .planner-week-nav{grid-template-columns:44px 1fr 44px;margin-bottom:8px;}
+    .planner-week-btn{height:40px;}
+    .planner-day-strip{gap:4px;padding-bottom:9px;overflow:visible;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));}
+    .planner-day-btn{min-width:0;padding:7px 2px;font-size:9px;border-radius:8px;}
+    .planner-title-row{margin-bottom:8px;}
+    .planner-title{font-size:14px;}
+    .planner-help{font-size:10px;line-height:1.3;}
+    .planner-person{padding:7px 8px;margin-bottom:6px;}
+    .planner-person-head{margin-bottom:5px;}
+    .planner-person-name{font-size:13px;}
+    .planner-dayoff{font-size:11px;}
+    .planner-shifts{gap:5px;}
+    .planner-shift{padding:4px;gap:3px;flex:0 1 auto;}
+    .planner-shift input[type=time]{width:91px;height:32px;padding:5px 3px;font-size:12px;}
+    .planner-fixed-time{min-width:91px;height:30px;font-size:12px;}
+    .planner-mini-btn{width:32px;height:32px;font-size:20px;}
+    .planner-mini-btn.remove{width:27px;padding:0;}
+    .planner-delivery-shift{padding-top:11px;}
+    .planner-delivery-label{top:-7px;left:6px;font-size:8px;}
+    .planner-timeline-card{padding:8px 6px;margin-top:10px;}
+    .planner-legend{gap:5px 8px;font-size:8px;margin-bottom:6px;}
+    .planner-swatch{width:10px;height:10px;}
+    .planner-grid{grid-template-columns:70px repeat(18,minmax(0,1fr));}
+    .phead,.plabel,.phour{height:25px;font-size:7px;}
+    .pcell{font-size:7px;}
+    .planner-hour-head .hour-line-label,.planner-hour-head.last-hour::after{font-size:7px;}
+    .plabel{padding:0 3px;font-size:7px;}
+    .planner-available-label{font-size:6.5px;padding-left:3px;}
+    .planner-actions{grid-template-columns:1fr;}
+  }
+  @media(min-width:760px){
+    .planner-shell{max-width:1180px;margin-left:auto;margin-right:auto;}
+    .planner-week-nav{grid-template-columns:52px 1fr 52px;margin-bottom:14px;}
+    .planner-week-btn{height:48px;}
+    .planner-week-label{font-size:16px;}
+    .planner-day-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;overflow:visible;padding-bottom:16px;}
+    .planner-day-btn{min-width:0;padding:10px 8px;font-size:12px;}
+    .planner-title{font-size:18px;}
+    .planner-help{font-size:12px;}
+    #plannerPeople{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;align-items:start;}
+    .planner-person{margin-bottom:0;padding:12px;}
+    .planner-person-name{font-size:15px;}
+    .planner-shifts{gap:7px;}
+    .planner-shift input[type=time]{width:112px;}
+    .planner-fixed-time{min-width:112px;}
+    .planner-timeline-card{padding:14px;margin-top:16px;}
+    .planner-legend{font-size:10px;gap:8px 14px;}
+    .planner-grid{grid-template-columns:126px repeat(18,minmax(28px,1fr));}
+    .phead,.plabel,.phour{height:35px;font-size:10px;}
+    .pcell{font-size:10px;}
+    .planner-hour-head .hour-line-label,.planner-hour-head.last-hour::after{font-size:10px;}
+    .plabel{font-size:10px;padding:0 8px;}
+    .planner-available-label{font-size:9px;padding-left:7px;}
+    .planner-actions .btn{min-height:60px;font-size:13px;}
+  }
+  @media(min-width:1080px){
+    #plannerPeople{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .planner-grid{grid-template-columns:140px repeat(18,minmax(36px,1fr));}
+    .phead,.plabel,.phour{height:38px;font-size:11px;}
+    .pcell{font-size:11px;}
+    .planner-hour-head .hour-line-label,.planner-hour-head.last-hour::after{font-size:11px;}
+    .plabel{font-size:11px;}
+  }
+
+  /* ===== Staff administration (new Staff tab) ===== */
+  .staff-admin-card{background:var(--navy-2);border:1px solid var(--off-line);border-radius:12px;padding:12px;}
+  .staff-admin-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+  .staff-admin-title{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--cream);}
+  .staff-admin-count{font-size:11px;color:var(--off);}
+  .staff-admin-row{display:grid;grid-template-columns:minmax(90px,1fr) minmax(82px,110px) 72px 82px;gap:7px;align-items:center;padding:9px 0;border-bottom:1px solid var(--off-line);}
+  .staff-admin-row:last-of-type{border-bottom:none;}
+  .staff-name{font-size:13px;font-weight:800;color:var(--cream);overflow:hidden;text-overflow:ellipsis;}
+  .staff-pin-static{height:38px;display:flex;align-items:center;padding:0 10px;background:var(--navy);border:1px solid var(--off-line);border-radius:8px;color:var(--cream);font-size:14px;letter-spacing:.08em;}
+  .staff-pin-edit{width:100%!important;height:38px;padding:7px 9px!important;margin:0!important;font-size:14px!important;}
+  .staff-row-btn{height:38px;border-radius:8px;background:transparent;border:1px solid var(--amber-dim);color:var(--amber);font-size:11px;font-weight:800;padding:0 8px;}
+  .staff-row-btn.danger{border-color:var(--red);color:var(--red);}
+  .staff-row-btn.save{background:var(--amber);color:var(--navy);border-color:var(--amber);}
+  .staff-add-wrap{margin-top:12px;border:1px dashed var(--amber-dim);border-radius:10px;padding:10px;}
+  .staff-add-toggle{width:100%;border:none;background:transparent;color:var(--amber);font-size:13px;font-weight:800;text-align:left;padding:4px 0;}
+  .staff-add-form{display:grid;grid-template-columns:1fr 105px;gap:8px;margin-top:10px;}
+  .staff-add-form input{margin:0!important;}
+  .staff-add-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+  .staff-confirm-text{font-size:11px;color:var(--off);line-height:1.35;margin:8px 0;}
+  @media(max-width:560px){
+    .staff-admin-row{grid-template-columns:1fr 86px 60px 70px;gap:5px;}
+    .staff-row-btn{font-size:10px;padding:0 5px;}
+    .staff-add-form{grid-template-columns:1fr 92px;}
+  }
+
 </style>
 </head>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <body>
 
-<h1><span class="amber">Rota</span> Editor</h1>
-<div class="sub">Private — changes here update all 5 staff phones</div>
+<h1><span class="amber">Manage</span> Fordham</h1>
+<div class="sub">Private — changes here update all 9 staff phones</div>
 
 <!-- LOGIN -->
 <div id="loginCard" class="card">
   <label>Email</label>
-  <input type="email" id="loginEmail" placeholder="manager@fordham.local" autocomplete="username">
+  <input type="email" id="loginEmail" placeholder="Manager email" autocomplete="username">
   <label>Password</label>
   <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
   <button class="btn" id="loginBtn" style="margin-top:16px;">Sign in</button>
@@ -530,6 +700,44 @@
   </div>
 
   <div id="tab-shifts" class="tab-content">
+
+  <div id="plannerWorkspace" class="planner-shell">
+    <div class="planner-week-nav">
+      <button class="planner-week-btn" id="plannerWeekPrev">‹</button>
+      <div class="planner-week-label" id="plannerWeekLabel"></div>
+      <button class="planner-week-btn" id="plannerWeekNext">›</button>
+    </div>
+    <div class="planner-day-strip" id="plannerDayStrip"></div>
+    <div class="planner-title-row">
+      <div>
+        <div class="planner-title" id="plannerDayTitle"></div>
+        <div class="planner-help">Edit shifts here. A gap between shifts is treated as a break. Maximum 3 shift periods per person.</div>
+      </div>
+    </div>
+    <div id="plannerPeople"></div>
+
+    <div class="planner-timeline-card">
+      <div class="planner-timeline-title" id="plannerTimelineTitle">Live staffing timeline</div>
+      <div class="planner-legend">
+        <span class="planner-key"><i class="planner-swatch one"></i>1 staff</span>
+        <span class="planner-key"><i class="planner-swatch two"></i>2 staff</span>
+        <span class="planner-key"><i class="planner-swatch three"></i>3+ staff</span>
+        <span class="planner-key"><i class="planner-swatch zero"></i>0 staff</span>
+        <span class="planner-key"><i class="planner-swatch delivery"></i>Delivery 09:00–13:00 (not counted)</span>
+        <span class="planner-key"><i class="planner-swatch break"></i>Break / day off</span>
+      </div>
+      <div class="planner-grid-scroll"><div id="plannerGrid" class="planner-grid"></div></div>
+      <div class="planner-notice" id="plannerDraftNotice">No unpublished changes. Staff phones still show the published rota.</div>
+      <div class="planner-actions">
+        <button class="btn secondary" id="plannerConfirmWeek">Confirm this week only<span class="planner-publish-note">Publish only the selected week.</span></button>
+        <button class="btn" id="plannerConfirmFuture">Confirm all future weeks<span class="planner-publish-note">Use this pattern from the selected week onwards.</span></button>
+      </div>
+      <div class="status" id="plannerStatus"></div>
+    </div>
+  </div>
+
+  <div id="legacyShiftEditor" class="hidden">
+
 
   <div class="row" style="gap:8px; margin-bottom:10px;">
     <button class="btn secondary edit-mode-btn active" data-mode="week">This week</button>
@@ -571,6 +779,8 @@
   <button class="btn" id="saveBtn">Save changes</button>
   <div class="status" id="saveStatus"></div>
 
+
+  </div>
   </div>
 
   <div id="tab-viewschedules" class="tab-content hidden">
@@ -628,6 +838,30 @@
   </div>
 
   <div id="tab-addstaff" class="tab-content hidden">
+  <div class="staff-admin-card">
+    <div class="staff-admin-head">
+      <div class="staff-admin-title">Staff members</div>
+      <div class="staff-admin-count" id="staffAdminCount"></div>
+    </div>
+    <div id="staffAdminRows"></div>
+    <div class="staff-add-wrap">
+      <button class="staff-add-toggle" id="staffAddToggle">＋ Add staff member</button>
+      <div id="staffAddPanel" class="hidden">
+        <div class="staff-add-form">
+          <input type="text" id="staffAddName" placeholder="Name" autocomplete="off">
+          <input type="text" id="staffAddPin" placeholder="4-digit PIN" inputmode="numeric" maxlength="4" autocomplete="off">
+        </div>
+        <div class="staff-add-actions">
+          <button class="btn" id="staffAddSave">Save</button>
+          <button class="btn secondary" id="staffAddCancel">Cancel</button>
+        </div>
+        <div class="status" id="staffAddStatus"></div>
+      </div>
+    </div>
+    <div class="status" id="staffAdminStatus"></div>
+  </div>
+  <div id="legacyStaffAdmin" class="hidden">
+
   <div class="card">
     <div style="font-size:13px; font-weight:800; color:var(--amber); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:10px;">Add staff member</div>
     <div class="sub" style="margin-bottom:12px;">New person starts with a blank week (all days off). Add their shifts afterward the same way you edit anyone else's — pick them, pick a day, add shifts.</div>
@@ -642,6 +876,8 @@
     <div id="pinFields"></div>
     <button class="btn secondary" id="savePinsBtn" style="margin-top:8px;">Save PINs</button>
     <div class="status" id="pinStatus"></div>
+  </div>
+
   </div>
   </div>
 
@@ -729,6 +965,450 @@ document.getElementById('addStaffBtn').onclick = async () => {
     statusEl.textContent = 'Could not save: ' + e.message;
   }
 };
+
+// ===== New planning workspace + staff admin =====
+let plannerDayIdx = 0;
+let plannerDirty = false;
+const PLANNER_START = 5 * 60;
+const PLANNER_END = 23 * 60;
+const PLANNER_HOURS = Array.from({length:18}, (_,i)=>5+i);
+const DELIVERY_START = '09:00';
+const DELIVERY_END = '13:00';
+const staffPinEditMode = new Set();
+let plannerPublishedSnapshot = null;
+let plannerExistingCoverLogs = [];
+
+function cloneData(obj){ return JSON.parse(JSON.stringify(obj)); }
+function isQuarterTime(t){
+  const m=toMinutes(t); return m!==null && m%15===0;
+}
+function slotToTime(slot){
+  const mins=slot*15; return String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0');
+}
+function normalShiftSlots(data,name,dayIdx){
+  const out=new Set(); const day=data&&data[name]&&data[name][dayIdx];
+  ((day&&day.shifts)||[]).map(normaliseDeliveryShift).filter(s=>!isDeliveryShift(s)).forEach(s=>{
+    const a=toMinutes(s.start),b=toMinutes(s.end); if(a===null||b===null||b<=a)return;
+    for(let m=a;m<b;m+=15) out.add(Math.floor(m/15));
+  });
+  return out;
+}
+function slotsToIntervals(slots){
+  const arr=[...slots].sort((a,b)=>a-b); if(!arr.length)return [];
+  const out=[]; let start=arr[0],prev=arr[0];
+  for(let i=1;i<=arr.length;i++){
+    const cur=arr[i];
+    if(cur!==prev+1){ out.push({startSlot:start,endSlot:prev+1,start:slotToTime(start),end:slotToTime(prev+1)}); start=cur; }
+    prev=cur;
+  }
+  return out;
+}
+function differenceSet(a,b){ const s=new Set(); a.forEach(v=>{if(!b.has(v))s.add(v);}); return s; }
+function intersectSets(a,b){ const s=new Set(); a.forEach(v=>{if(b.has(v))s.add(v);}); return s; }
+
+function detectCoverChanges(before,after){
+  const matches=[]; const uncovered=[];
+  for(let dayIdx=0;dayIdx<7;dayIdx++){
+    const removedBlocks=[]; const addedBlocks=[];
+    STAFF.forEach(name=>{
+      const oldS=normalShiftSlots(before||{},name,dayIdx), newS=normalShiftSlots(after||{},name,dayIdx);
+      slotsToIntervals(differenceSet(oldS,newS)).forEach(x=>removedBlocks.push({...x,person:name,slots:new Set(Array.from({length:x.endSlot-x.startSlot},(_,i)=>x.startSlot+i))}));
+      slotsToIntervals(differenceSet(newS,oldS)).forEach(x=>addedBlocks.push({...x,person:name,slots:new Set(Array.from({length:x.endSlot-x.startSlot},(_,i)=>x.startSlot+i))}));
+    });
+    // Greedy best-overlap matching; each added 15-min slot can cover only one removed slot.
+    while(true){
+      let best=null;
+      removedBlocks.forEach((r,ri)=>addedBlocks.forEach((a,ai)=>{
+        if(r.person===a.person)return;
+        const inter=intersectSets(r.slots,a.slots);
+        if(inter.size && (!best || inter.size>best.inter.size)) best={ri,ai,inter};
+      }));
+      if(!best)break;
+      const r=removedBlocks[best.ri], a=addedBlocks[best.ai];
+      const ints=slotsToIntervals(best.inter);
+      ints.forEach(x=>matches.push({dayIdx,originalPerson:r.person,coveringPerson:a.person,start:x.start,end:x.end,hours:(x.endSlot-x.startSlot)*0.25}));
+      best.inter.forEach(v=>{r.slots.delete(v);a.slots.delete(v);});
+      if(!r.slots.size) removedBlocks.splice(best.ri,1);
+      if(!a.slots.size){
+        const idx=addedBlocks.indexOf(a); if(idx>=0) addedBlocks.splice(idx,1);
+      }
+    }
+    removedBlocks.forEach(r=>slotsToIntervals(r.slots).forEach(x=>uncovered.push({dayIdx,person:r.person,start:x.start,end:x.end})));
+  }
+  return {matches,uncovered};
+}
+function coverSignature(r){ return [r.date,r.originalPerson,r.coveringPerson,r.start,r.end].join('|'); }
+function isDeliveryShift(s){ return !!(s && s.tag && String(s.tag).toLowerCase().includes('delivery')); }
+function normaliseDeliveryShift(s){
+  return isDeliveryShift(s) ? {...s, start:DELIVERY_START, end:DELIVERY_END, tag:'Delivery (fixed)'} : {...s};
+}
+function normaliseAllDelivery(data){
+  Object.keys(data || {}).forEach(name => (data[name] || []).forEach(day => {
+    if (day && day.shifts) day.shifts = day.shifts.map(normaliseDeliveryShift);
+  }));
+  return data;
+}
+function plannerMarkDirty(){
+  plannerDirty = true;
+  const n=document.getElementById('plannerDraftNotice');
+  if(n) n.textContent='Unpublished changes — this is a preview only. Staff phones have not been updated.';
+}
+function plannerClearDirty(){
+  plannerDirty=false;
+  const n=document.getElementById('plannerDraftNotice');
+  if(n) n.textContent='No unpublished changes. Staff phones show the published rota.';
+}
+function plannerWeekLabelText(){
+  const end=new Date(viewedWeekStart); end.setDate(end.getDate()+6);
+  const same=weekKey(mondayOf(new Date()))===weekKey(viewedWeekStart);
+  const range=`${viewedWeekStart.getDate()} ${SHORT_MONTHS[viewedWeekStart.getMonth()]} – ${end.getDate()} ${SHORT_MONTHS[end.getMonth()]}`;
+  return same?`This week · ${range}`:range;
+}
+function plannerDayDate(idx){ const d=new Date(viewedWeekStart); d.setDate(d.getDate()+idx); return d; }
+function plannerDayLabel(idx){ const d=plannerDayDate(idx); return `${DAY_FULL[idx]} ${d.getDate()} ${SHORT_MONTHS[d.getMonth()]}`; }
+function recomputeDay(day){
+  if(!day || !day.shifts || !day.shifts.length) return {off:true,total:0};
+  const shifts=day.shifts.map(normaliseDeliveryShift);
+  // Count unique 15-minute working slots so a Delivery duty inside a normal shift is not double-counted.
+  const slots=new Set();
+  shifts.forEach(s=>{
+    const a=toMinutes(s.start),b=toMinutes(s.end);
+    if(a!==null&&b!==null&&b>a) for(let m=a;m<b;m+=15) slots.add(Math.floor(m/15));
+  });
+  return {shifts,total:Math.round(slots.size*0.25*100)/100};
+}
+function ensurePlannerDay(name){
+  if(!DATA[name]) DATA[name]=blankWeek();
+  if(!DATA[name][plannerDayIdx]) DATA[name][plannerDayIdx]={off:true,total:0};
+  const d=DATA[name][plannerDayIdx];
+  if(d.shifts) d.shifts=d.shifts.map(normaliseDeliveryShift);
+  return d;
+}
+function renderPlanner(){
+  if(!document.getElementById('plannerWorkspace') || !DATA) return;
+  normaliseAllDelivery(DATA);
+  document.getElementById('plannerWeekLabel').textContent=plannerWeekLabelText();
+  document.getElementById('plannerDayTitle').textContent=plannerDayLabel(plannerDayIdx)+' — Edit day rota';
+  document.getElementById('plannerTimelineTitle').textContent=`Live staffing timeline (${plannerDayLabel(plannerDayIdx)})`;
+  renderPlannerDays();
+  renderPlannerPeople();
+  renderPlannerGrid();
+}
+function renderPlannerDays(){
+  const el=document.getElementById('plannerDayStrip'); if(!el)return; el.innerHTML='';
+  DAYS.forEach((name,idx)=>{
+    const d=plannerDayDate(idx);
+    const b=document.createElement('button'); b.className='planner-day-btn'+(idx===plannerDayIdx?' active':'');
+    b.innerHTML=`${name.charAt(0)+name.slice(1).toLowerCase()}<br><span>${d.getDate()} ${SHORT_MONTHS[d.getMonth()]}</span>`;
+    b.onclick=()=>{ plannerDayIdx=idx; renderPlanner(); };
+    el.appendChild(b);
+  });
+}
+function plannerDeliveryOwner(){
+  for(const name of STAFF){
+    const day=ensurePlannerDay(name); if(((day.shifts)||[]).some(isDeliveryShift)) return name;
+  }
+  return null;
+}
+function addNormalPlannerShift(name){
+  const current=ensurePlannerDay(name); const all=(current.shifts||[]).map(normaliseDeliveryShift);
+  if(all.filter(x=>!isDeliveryShift(x)).length>=3) return;
+  all.push({start:'08:00',end:'17:00'}); DATA[name][plannerDayIdx]=recomputeDay({shifts:all});
+  plannerMarkDirty(); renderPlanner();
+}
+function addDeliveryPlannerShift(name){
+  if(plannerDeliveryOwner()) return;
+  const current=ensurePlannerDay(name); const all=(current.shifts||[]).map(normaliseDeliveryShift);
+  all.push({start:DELIVERY_START,end:DELIVERY_END,tag:'Delivery (fixed)'});
+  DATA[name][plannerDayIdx]=recomputeDay({shifts:all}); plannerMarkDirty(); renderPlanner();
+}
+function renderPlannerPeople(){
+  const host=document.getElementById('plannerPeople'); if(!host)return; host.innerHTML='';
+  const deliveryOwner=plannerDeliveryOwner();
+  STAFF.forEach(name=>{
+    const day=ensurePlannerDay(name);
+    const shifts=(day.shifts||[]).map(normaliseDeliveryShift);
+    const normal=shifts.filter(s=>!isDeliveryShift(s));
+    const delivery=shifts.find(isDeliveryShift);
+    const row=document.createElement('div'); row.className='planner-person';
+    row.innerHTML=`<div class="planner-person-head"><div class="planner-person-name">${name}</div><div class="planner-dayoff">${shifts.length?'':'Day off'}</div></div><div class="planner-shifts"></div>`;
+    const head=row.querySelector('.planner-person-head');
+    const area=row.querySelector('.planner-shifts');
+
+    const plus=document.createElement('button'); plus.type='button'; plus.className='planner-mini-btn'; plus.textContent='+'; plus.title='Add shift';
+    plus.setAttribute('aria-label',`Add shift for ${name}`);
+    plus.onclick=(ev)=>{
+      row.querySelectorAll('.planner-add-menu').forEach(x=>x.remove());
+      const normalCount=((ensurePlannerDay(name).shifts)||[]).filter(x=>!isDeliveryShift(x)).length;
+      if(deliveryOwner){ if(normalCount<3) addNormalPlannerShift(name); return; }
+      const menu=document.createElement('div'); menu.className='planner-add-menu';
+      const normalBtn=document.createElement('button'); normalBtn.type='button'; normalBtn.textContent='＋ Normal shift';
+      normalBtn.disabled=normalCount>=3; normalBtn.onclick=()=>{menu.remove();addNormalPlannerShift(name);};
+      const deliveryBtn=document.createElement('button'); deliveryBtn.type='button'; deliveryBtn.className='delivery'; deliveryBtn.textContent='＋ Delivery 09:00–13:00';
+      deliveryBtn.onclick=()=>{menu.remove();addDeliveryPlannerShift(name);};
+      menu.append(normalBtn,deliveryBtn); head.appendChild(menu);
+      ev.stopPropagation();
+    };
+    head.appendChild(plus);
+
+    if(delivery){
+      const box=document.createElement('div'); box.className='planner-shift planner-delivery-shift';
+      box.innerHTML=`<span class="planner-delivery-label">Delivery</span><div class="planner-fixed-time">09:00</div><span class="planner-shift-sep">–</span><div class="planner-fixed-time">13:00</div><button class="planner-mini-btn remove" type="button" title="Remove delivery" aria-label="Remove ${name} delivery">×</button>`;
+      box.querySelector('button').onclick=()=>{
+        const current=ensurePlannerDay(name); const all=(current.shifts||[]).map(normaliseDeliveryShift).filter(x=>!isDeliveryShift(x));
+        DATA[name][plannerDayIdx]=recomputeDay({shifts:all}); plannerMarkDirty(); renderPlanner();
+      };
+      area.appendChild(box);
+    }
+
+    normal.forEach((s,idx)=>{
+      const box=document.createElement('div'); box.className='planner-shift';
+      box.innerHTML=`<input type="time" step="900" value="${s.start||'08:00'}" aria-label="${name} shift ${idx+1} start"><span class="planner-shift-sep">–</span><input type="time" step="900" value="${s.end||'17:00'}" aria-label="${name} shift ${idx+1} end"><button class="planner-mini-btn remove" type="button" title="Remove shift" aria-label="Remove ${name} shift ${idx+1}">×</button>`;
+      const inputs=box.querySelectorAll('input');
+      const apply=()=>{
+        if(!isQuarterTime(inputs[0].value)||!isQuarterTime(inputs[1].value)){ alert('Use 15-minute times only (:00, :15, :30 or :45).'); inputs[0].value=s.start; inputs[1].value=s.end; return; }
+        if(toMinutes(inputs[1].value)<=toMinutes(inputs[0].value)){ alert('Finish time must be after start time.'); inputs[0].value=s.start; inputs[1].value=s.end; return; }
+        const current=ensurePlannerDay(name); const all=(current.shifts||[]).map(normaliseDeliveryShift);
+        const normals=all.filter(x=>!isDeliveryShift(x)); const deliveries=all.filter(isDeliveryShift);
+        normals[idx]={...normals[idx],start:inputs[0].value,end:inputs[1].value};
+        DATA[name][plannerDayIdx]=recomputeDay({shifts:[...deliveries,...normals]});
+        plannerMarkDirty(); renderPlannerGrid();
+      };
+      inputs.forEach(inp=>inp.addEventListener('change',apply));
+      box.querySelector('button').onclick=()=>{
+        const current=ensurePlannerDay(name); const all=(current.shifts||[]).map(normaliseDeliveryShift);
+        const normals=all.filter(x=>!isDeliveryShift(x)); const deliveries=all.filter(isDeliveryShift);
+        normals.splice(idx,1); DATA[name][plannerDayIdx]=recomputeDay({shifts:[...deliveries,...normals]});
+        plannerMarkDirty(); renderPlanner();
+      };
+      area.appendChild(box);
+    });
+
+    if(normal.length>=3){ plus.title='Maximum 3 normal shift periods reached'; }
+    host.appendChild(row);
+  });
+}
+function overlapsRange(s,startMin,endMin){
+  const a=toMinutes(s.start),b=toMinutes(s.end); if(a===null||b===null)return false;
+  return a < endMin && b > startMin;
+}
+function plannerHourParts(hour){
+  const hs=hour*60, he=hs+60; let has15or45=false, has30=false;
+  STAFF.forEach(name=>{
+    const day=ensurePlannerDay(name); ((day.shifts)||[]).map(normaliseDeliveryShift).forEach(s=>{
+      [toMinutes(s.start),toMinutes(s.end)].forEach(m=>{
+        if(m===null||m<=hs||m>=he)return; const rem=m-hs;
+        if(rem===15||rem===45) has15or45=true; else if(rem===30) has30=true;
+      });
+    });
+  });
+  if(has15or45) return [[0,15],[15,30],[30,45],[45,60]];
+  if(has30) return [[0,30],[30,60]];
+  return [[0,60]];
+}
+function plannerSegments(){
+  const out=[]; PLANNER_HOURS.forEach(h=>plannerHourParts(h).forEach(([a,b])=>out.push({hour:h,start:h*60+a,end:h*60+b}))); return out;
+}
+function renderPlannerGrid(){
+  const g=document.getElementById('plannerGrid'); if(!g)return; g.innerHTML='';
+  // Keep exactly one equal-width OUTER column per hour.
+  // Any 15/30-minute detail is nested inside that hour and never changes its width.
+  g.style.gridTemplateColumns=`70px repeat(${PLANNER_HOURS.length},minmax(0,1fr))`;
+
+  const addLabel=(cls,txt='')=>{
+    const d=document.createElement('div'); d.className=cls; d.textContent=txt; g.appendChild(d); return d;
+  };
+  const addHourCell=(parts,classes,texts)=>{
+    const box=document.createElement('div');
+    box.className=`phour parts-${parts.length}`;
+    parts.forEach((part,i)=>{
+      const cell=document.createElement('div');
+      cell.className=classes[i];
+      cell.textContent=texts ? (texts[i]??'') : '';
+      box.appendChild(cell);
+    });
+    g.appendChild(box);
+  };
+
+  addLabel('phead staff-head','Staff');
+  PLANNER_HOURS.forEach((h,idx)=>{
+    const head=addLabel('phead planner-hour-head'+(idx===PLANNER_HOURS.length-1?' last-hour':''));
+    const lab=document.createElement('span'); lab.className='hour-line-label'; lab.textContent=String(h).padStart(2,'0'); head.appendChild(lab);
+  });
+
+  // Cache each hour's visual subdivision. 1 part normally, 2 for :30, 4 for :15/:45.
+  const hourParts=new Map(PLANNER_HOURS.map(h=>[h,plannerHourParts(h)]));
+  const segmentCount=(start,end)=>STAFF.reduce((sum,name)=>{
+    const shifts=(ensurePlannerDay(name).shifts||[]).map(normaliseDeliveryShift);
+    const onDelivery=shifts.some(s=>isDeliveryShift(s)&&overlapsRange(s,start,end));
+    const normalWorking=shifts.some(s=>!isDeliveryShift(s)&&overlapsRange(s,start,end));
+    return sum + (normalWorking && !onDelivery ? 1 : 0);
+  },0);
+
+  STAFF.forEach(name=>{
+    const shifts=(ensurePlannerDay(name).shifts||[]).map(normaliseDeliveryShift);
+    const normals=shifts.filter(s=>!isDeliveryShift(s));
+    const deliveries=shifts.filter(isDeliveryShift);
+    addLabel('plabel',name);
+
+    const starts=normals.map(s=>toMinutes(s.start)).filter(v=>v!==null);
+    const ends=normals.map(s=>toMinutes(s.end)).filter(v=>v!==null);
+    const minStart=starts.length?Math.min(...starts):null;
+    const maxEnd=ends.length?Math.max(...ends):null;
+
+    PLANNER_HOURS.forEach(h=>{
+      const parts=hourParts.get(h);
+      const classes=[];
+      parts.forEach(([a,b])=>{
+        const start=h*60+a, end=h*60+b;
+        const count=segmentCount(start,end);
+        const delivery=deliveries.some(s=>overlapsRange(s,start,end));
+        const working=normals.some(s=>overlapsRange(s,start,end));
+        let cls='pcell empty';
+        if(delivery) cls='pcell delivery';
+        else if(working) cls='pcell '+(count===1?'one':count===2?'two':'three');
+        else if(shifts.length===0) cls='pcell break';
+        else if(minStart!==null && start<maxEnd && end>minStart) cls='pcell break';
+        classes.push(cls);
+      });
+      addHourCell(parts,classes);
+    });
+  });
+
+  addLabel('plabel planner-available-label','Available staff');
+  PLANNER_HOURS.forEach(h=>{
+    const parts=hourParts.get(h);
+    const classes=[], texts=[];
+    parts.forEach(([a,b])=>{
+      const c=segmentCount(h*60+a,h*60+b);
+      classes.push('pcell '+(c===0?'zero':c===1?'one':c===2?'two':'three'));
+      texts.push(String(c));
+    });
+    addHourCell(parts,classes,texts);
+  });
+}
+async function loadPatternVersions(){
+  try{ const s=await getDoc(doc(db,'rota','pattern_versions')); return s.exists()&&Array.isArray(s.data().versions)?s.data().versions:[]; }catch(e){ console.warn(e); return []; }
+}
+async function basePatternForWeek(mondayDate){
+  const versions=await loadPatternVersions(); const key=weekKey(mondayDate);
+  const candidates=versions.filter(v=>v&&v.effectiveFrom<=key&&v.json).sort((a,b)=>a.effectiveFrom.localeCompare(b.effectiveFrom));
+  if(candidates.length){ try{return JSON.parse(candidates[candidates.length-1].json);}catch(e){} }
+  return cloneData(DEFAULT_DATA);
+}
+function coverReviewDialog(detected){
+  return new Promise(resolve=>{
+    const back=document.createElement('div'); back.className='cover-review-backdrop';
+    const card=document.createElement('div'); card.className='cover-review-card';
+    const matchHtml=detected.matches.length?detected.matches.map(m=>`<div class="cover-review-item"><b>${plannerDayLabel(m.dayIdx)}</b><br>${m.originalPerson} → ${m.coveringPerson}<br>${m.start}–${m.end} (${m.hours}h)</div>`).join(''):'<div class="cover-review-item">No likely cover matches were detected.</div>';
+    const uncHtml=detected.uncovered.length?`<div class="cover-review-item cover-review-uncovered"><b>Uncovered removed hours</b><br>${detected.uncovered.map(u=>`${plannerDayLabel(u.dayIdx)} · ${u.person} ${u.start}–${u.end}`).join('<br>')}</div>`:'';
+    card.innerHTML=`<div class="cover-review-title">Review temporary cover</div><div class="cover-review-sub">These matches use only the overlap with removed hours. Extra hours before or after are ignored. This applies only to “Confirm this week only”.</div>${matchHtml}${uncHtml}<div class="cover-review-actions"><button class="btn" data-act="record">Publish + record cover</button><button class="btn secondary" data-act="plain">Publish without cover record</button><button class="btn secondary cancel" data-act="cancel">Cancel</button></div>`;
+    back.appendChild(card); document.body.appendChild(back);
+    card.querySelectorAll('button').forEach(b=>b.onclick=()=>{const a=b.dataset.act;back.remove();resolve(a);});
+  });
+}
+async function publishPlannerWeek(){
+  const st=document.getElementById('plannerStatus'); st.className='status'; st.textContent='Checking temporary cover…';
+  try{
+    normaliseAllDelivery(DATA);
+    const detected=detectCoverChanges(plannerPublishedSnapshot||{},DATA);
+    let action='plain';
+    if(detected.matches.length||detected.uncovered.length) action=await coverReviewDialog(detected);
+    if(action==='cancel'){st.className='status';st.textContent='Publish cancelled.';return;}
+    const dateForDay=i=>weekKey(plannerDayDate(i));
+    let logs=[...(plannerExistingCoverLogs||[])];
+    if(action==='record'){
+      const now=new Date().toISOString();
+      const incoming=detected.matches.map(m=>({date:dateForDay(m.dayIdx),originalPerson:m.originalPerson,coveringPerson:m.coveringPerson,start:m.start,end:m.end,hours:m.hours,recordedAt:now,source:'planner'}));
+      const seen=new Set(logs.map(coverSignature)); incoming.forEach(r=>{if(!seen.has(coverSignature(r))){logs.push(r);seen.add(coverSignature(r));}});
+    }
+    st.textContent='Publishing…';
+    await setDoc(doc(db,'rota',`week_${weekKey(viewedWeekStart)}`),{json:JSON.stringify(DATA),coverLogs:logs});
+    plannerExistingCoverLogs=logs; plannerPublishedSnapshot=cloneData(DATA);
+    isCustomWeek=true; plannerClearDirty(); renderWeekStatus();
+    st.className='status ok'; st.textContent=action==='record'&&detected.matches.length?'Published — this week is live and covering report entries were recorded.':'Published — this week only is now live on staff phones.';
+    nowBannerData=null; viewDataLoaded=false;
+  }catch(e){st.className='status err';st.textContent='Publish failed: '+e.message;}
+}
+async function publishPlannerFuture(){
+  const st=document.getElementById('plannerStatus'); st.className='status'; st.textContent='Publishing future pattern…';
+  try{
+    normaliseAllDelivery(DATA);
+    const effectiveFrom=weekKey(viewedWeekStart); let versions=await loadPatternVersions();
+    versions=versions.filter(v=>v.effectiveFrom!==effectiveFrom); versions.push({effectiveFrom,json:JSON.stringify(DATA)}); versions.sort((a,b)=>a.effectiveFrom.localeCompare(b.effectiveFrom));
+    await setDoc(doc(db,'rota','pattern_versions'),{versions});
+    await setDoc(doc(db,'rota',`week_${effectiveFrom}`),{json:JSON.stringify(DATA),coverLogs:plannerExistingCoverLogs||[]});
+    plannerPublishedSnapshot=cloneData(DATA);
+    isCustomWeek=true; plannerClearDirty();
+    st.className='status ok'; st.textContent=`Published — this pattern will be used from ${effectiveFrom} onwards. Permanent changes are not recorded as cover.`;
+    nowBannerData=null; viewDataLoaded=false;
+  }catch(e){st.className='status err';st.textContent='Publish failed: '+e.message;}
+}
+
+async function plannerChangeWeek(delta){
+  if(plannerDirty && !confirm('You have unpublished changes. Leave this week and discard the preview?')) return;
+  viewedWeekStart=new Date(viewedWeekStart); viewedWeekStart.setDate(viewedWeekStart.getDate()+delta*7);
+  await loadWeekData(); plannerClearDirty(); renderWeekLabel(); renderWeekStatus(); renderPlanner();
+}
+
+// Staff screen
+function renderStaffAdmin(){
+  const host=document.getElementById('staffAdminRows'); if(!host)return;
+  host.innerHTML=''; document.getElementById('staffAdminCount').textContent=`${STAFF.length} staff member${STAFF.length===1?'':'s'}`;
+  STAFF.forEach(name=>{
+    const edit=staffPinEditMode.has(name); const row=document.createElement('div'); row.className='staff-admin-row';
+    const pin=staffPins[name]||'';
+    row.innerHTML=`<div class="staff-name">${name}</div><div>${edit?`<input class="staff-pin-edit" type="text" inputmode="numeric" maxlength="4" value="${pin}" aria-label="${name} PIN">`:`<div class="staff-pin-static">${pin||'—'}</div>`}</div><button class="staff-row-btn ${edit?'save':''}" type="button">${edit?'Save':'Edit'}</button><button class="staff-row-btn danger" type="button">Remove</button>`;
+    const [editBtn,removeBtn]=row.querySelectorAll('button');
+    editBtn.onclick=async()=>{
+      if(!edit){staffPinEditMode.add(name);renderStaffAdmin();return;}
+      const val=row.querySelector('input').value.trim();
+      if(!/^\d{4}$/.test(val)){alert('PIN must be exactly 4 digits.');return;}
+      if(Object.entries(staffPins).some(([n,p])=>n!==name&&p===val)){alert('That PIN is already used by another staff member.');return;}
+      staffPins[name]=val;
+      try{await setDoc(doc(db,'staff_pins','all'),staffPins);staffPinEditMode.delete(name);renderStaffAdmin();}
+      catch(e){alert('Could not save PIN: '+e.message);}
+    };
+    removeBtn.onclick=()=>removeStaffMemberAdmin(name);
+    host.appendChild(row);
+  });
+}
+async function removeStaffMemberAdmin(name){
+  if(!confirm(`Remove ${name} completely?\n\nThey will lose app access and all future scheduled shifts will be removed. Historical timesheets/reports will be kept.`)) return;
+  const st=document.getElementById('staffAdminStatus'); st.className='status'; st.textContent='Removing…';
+  try{
+    STAFF=STAFF.filter(n=>n!==name); delete staffPins[name]; delete DEFAULT_DATA[name]; delete DATA[name];
+    await setDoc(doc(db,'rota','staff_list'),{names:STAFF});
+    await setDoc(doc(db,'staff_pins','all'),staffPins);
+    await setDoc(doc(db,'rota','shifts'),{json:JSON.stringify(DEFAULT_DATA)});
+    let versions=await loadPatternVersions();
+    versions=versions.map(v=>{try{const d=JSON.parse(v.json);delete d[name];return {...v,json:JSON.stringify(d)};}catch(e){return v;}});
+    await setDoc(doc(db,'rota','pattern_versions'),{versions});
+    const rs=await getDocs(collection(db,'rota')); const todayKey=weekKey(mondayOf(new Date()));
+    const writes=[];
+    rs.forEach(s=>{ if(s.id.startsWith('week_')&&s.id.slice(5)>=todayKey&&s.data().json){try{const d=JSON.parse(s.data().json);delete d[name];writes.push(setDoc(doc(db,'rota',s.id),{json:JSON.stringify(d)}));}catch(e){}} });
+    await Promise.all(writes);
+    if(currentPerson===name) currentPerson=STAFF[0]||''; if(viewPerson===name) viewPerson=STAFF[0]||'';
+    renderStaffAdmin(); renderPlanner(); renderPersonStrip(); renderPinFields();
+    st.className='status ok'; st.textContent=`${name} removed. Future shifts and PIN access were removed; historical records were kept.`;
+  }catch(e){st.className='status err';st.textContent='Remove failed: '+e.message;}
+}
+async function addStaffMemberInline(){
+  const name=document.getElementById('staffAddName').value.trim(); const pin=document.getElementById('staffAddPin').value.trim(); const st=document.getElementById('staffAddStatus');
+  if(!name){st.className='status err';st.textContent='Enter a name.';return;}
+  if(STAFF.some(n=>n.toLowerCase()===name.toLowerCase())){st.className='status err';st.textContent='That name already exists.';return;}
+  if(!/^\d{4}$/.test(pin)){st.className='status err';st.textContent='PIN must be exactly 4 digits.';return;}
+  if(Object.values(staffPins).includes(pin)){st.className='status err';st.textContent='That PIN is already in use.';return;}
+  st.className='status';st.textContent='Adding…';
+  try{
+    STAFF.push(name); staffPins[name]=pin; DEFAULT_DATA[name]=blankWeek(); DATA[name]=blankWeek();
+    await setDoc(doc(db,'rota','staff_list'),{names:STAFF}); await setDoc(doc(db,'staff_pins','all'),staffPins); await setDoc(doc(db,'rota','shifts'),{json:JSON.stringify(DEFAULT_DATA)});
+    document.getElementById('staffAddName').value='';document.getElementById('staffAddPin').value='';document.getElementById('staffAddPanel').classList.add('hidden');
+    renderStaffAdmin();renderPlanner();renderPersonStrip();renderPinFields();
+    st.className='status ok';st.textContent=`${name} added with a blank rota.`;
+  }catch(e){ STAFF=STAFF.filter(n=>n!==name);delete staffPins[name];delete DEFAULT_DATA[name];delete DATA[name];st.className='status err';st.textContent='Add failed: '+e.message; }
+}
+
 const DAYS = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 const DAY_FULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
@@ -738,7 +1418,7 @@ function todayIndex(){
 }
 const TODAY = todayIndex();
 
-const WIN_START = 5 * 60, WIN_END = 22 * 60, WIN_RANGE = WIN_END - WIN_START;
+const WIN_START = 5 * 60, WIN_END = 23 * 60, WIN_RANGE = WIN_END - WIN_START;
 
 let viewPerson = STAFF[0];
 let viewDayIdx = TODAY;
@@ -863,7 +1543,7 @@ function renderViewPersonView(){
     } else {
       bodyHtml = day.shifts.map(s => {
         const timeLabel = s.start === "—" ? '' : `<span class="view-shift-time">${s.start} – ${s.end}</span>`;
-        const tag = s.tag ? `<span class="view-shift-tag">${s.tag}</span>` : '';
+        const tag = s.tag ? `<span class="view-shift-tag">(${s.tag})</span>` : '';
         return `<div class="view-shift-row"><span>${timeLabel}${tag}</span></div>`;
       }).join('');
     }
@@ -916,7 +1596,7 @@ function renderViewStaffDayView(){
     } else {
       bodyHtml = day.shifts.map(s => {
         const timeLabel = s.start === "—" ? '' : `<span class="view-shift-time">${s.start} – ${s.end}</span>`;
-        const tag = s.tag ? `<span class="view-shift-tag">${s.tag}</span>` : '';
+        const tag = s.tag ? `<span class="view-shift-tag">(${s.tag})</span>` : '';
         const active = isToday && s.start !== "—" && nowMin >= toMinutes(s.start) && nowMin < toMinutes(s.end);
         return `<div class="view-shift-row">${active ? '<span class="dot"></span>' : ''}<span>${timeLabel}${tag}</span></div>`;
       }).join('');
@@ -935,7 +1615,7 @@ function renderViewTimelineView(){
   const nowMin = new Date().getHours()*60 + new Date().getMinutes();
   const isToday = viewDayIdx === TODAY && weekKey(mondayOf(new Date())) === weekKey(viewWeekStart);
 
-  const axisTimes = ["05:00", "09:00", "13:00", "17:00", "22:00"];
+  const axisTimes = ["05:00", "10:00", "15:00", "19:00", "23:00"];
   let axisHtml = '<div class="tl-axis">';
   axisTimes.forEach(t => {
     const pct = (toMinutes(t) - WIN_START) / WIN_RANGE * 100;
@@ -1128,6 +1808,9 @@ onAuthStateChanged(auth, async (user) => {
     renderDayStrip();
     renderPinFields();
     loadDayIntoForm();
+    plannerDirty = false;
+    renderPlanner();
+    renderStaffAdmin();
   } else {
     document.getElementById('loginCard').classList.remove('hidden');
     document.getElementById('editorArea').classList.add('hidden');
@@ -1197,14 +1880,6 @@ async function loadReport(){
 
     rows.sort((a,b) => a.date.localeCompare(b.date) || a.person.localeCompare(b.person));
 
-    if (rows.length === 0){
-      currentReportRows = { rows, periodLabel, startDate: new Date(startDate), endDate: new Date(endDate), weeks: [] };
-      wrap.innerHTML = '<div class="sub" style="text-align:center;">No time logged for this period yet.</div>';
-      statusEl.className = 'status';
-      statusEl.textContent = '';
-      return;
-    }
-
     const actualMap = {};
     rows.forEach(r => {
       if (!actualMap[r.date]) actualMap[r.date] = {};
@@ -1218,7 +1893,7 @@ async function loadReport(){
     document.getElementById('downloadExcelBtn').style.display = '';
     document.getElementById('downloadCsvBtn').style.display = '';
     statusEl.className = 'status ok';
-    statusEl.textContent = `Loaded ${rows.length} logged entr${rows.length === 1 ? 'y' : 'ies'}.`;
+    statusEl.textContent = rows.length ? `Loaded ${rows.length} logged entr${rows.length === 1 ? 'y' : 'ies'}.` : 'No clocked entries yet; scheduled rota and covering records are shown.';
   } catch(e) {
     statusEl.className = 'status err';
     statusEl.textContent = 'Could not load report: ' + e.message;
@@ -1226,6 +1901,13 @@ async function loadReport(){
 }
 
 document.getElementById('loadReportBtn').onclick = loadReport;
+
+async function coverLogsForWeek(mondayDate){
+  try{
+    const snap=await getDoc(doc(db,'rota',`week_${weekKey(mondayDate)}`));
+    return snap.exists() && Array.isArray(snap.data().coverLogs) ? snap.data().coverLogs : [];
+  }catch(e){ console.warn('Could not load covering log',e); return []; }
+}
 
 async function resolveWeekDataForReport(mondayDate){
   try {
@@ -1236,7 +1918,8 @@ async function resolveWeekDataForReport(mondayDate){
       return parsed;
     }
   } catch(e) { console.warn('Could not resolve week for report', e); }
-  return DEFAULT_DATA;
+  const baseForWeek = await basePatternForWeek(mondayDate);
+  return baseForWeek;
 }
 
 async function buildWeeklyGrid(startDate, endDate, actualMap, extraCoveringRows){
@@ -1258,10 +1941,13 @@ async function buildWeeklyGrid(startDate, endDate, actualMap, extraCoveringRows)
 
   // Resolve each distinct week's real data once (respects Vacate/Cover overrides)
   const weekDataCache = {};
+  const coverLogCache = {};
   for (const week of weeksRaw){
-    const mondayKey = weekKey(week[0].getDay() === 1 ? week[0] : mondayOf(week[0]));
+    const mondayDate = mondayOf(week[0]);
+    const mondayKey = weekKey(week[0].getDay() === 1 ? week[0] : mondayDate);
     if (!(mondayKey in weekDataCache)){
-      weekDataCache[mondayKey] = await resolveWeekDataForReport(mondayOf(week[0]));
+      weekDataCache[mondayKey] = await resolveWeekDataForReport(mondayDate);
+      coverLogCache[mondayKey] = await coverLogsForWeek(mondayDate);
     }
   }
 
@@ -1302,6 +1988,9 @@ async function buildWeeklyGrid(startDate, endDate, actualMap, extraCoveringRows)
       extraCoveringRows.filter(r => r.date === ds).forEach(r => {
         const hrs = r.actualHours !== null ? r.actualHours : 0;
         covering.push(`${r.person} covering ${r.coveringName} (${hrs}h)`);
+      });
+      (coverLogCache[mondayKey] || []).filter(r => r.date === ds).forEach(r => {
+        covering.push(`${r.coveringPerson} covering ${r.originalPerson} (${r.start}–${r.end}, ${r.hours}h)`);
       });
 
       return { date: ds, dayName, perPerson, dayAlloc, dayActual, covering };
@@ -1800,21 +2489,26 @@ async function loadDefaultData(){
 
 async function loadWeekData(){
   const key = weekKey(viewedWeekStart);
+  plannerExistingCoverLogs = [];
   try {
     const snap = await getDoc(doc(db, 'rota', `week_${key}`));
     if (snap.exists() && snap.data().json){
       DATA = JSON.parse(snap.data().json);
+      plannerExistingCoverLogs = Array.isArray(snap.data().coverLogs) ? snap.data().coverLogs : [];
       isCustomWeek = true;
       hydrateStaffData();
+      plannerPublishedSnapshot = cloneData(DATA);
       return;
     }
   } catch(e) {
     console.warn('Could not load week override', e);
   }
-  // No override for this week — start from a fresh copy of the default pattern
-  DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  // No override for this week — use the latest pattern effective for this week, without changing historical weeks
+  const baseForWeek = await basePatternForWeek(viewedWeekStart);
+  DATA = baseForWeek;
   isCustomWeek = false;
   hydrateStaffData();
+  plannerPublishedSnapshot = cloneData(DATA);
 }
 
 async function refreshWeek(){
@@ -1828,11 +2522,15 @@ let currentViewSubtab = 'staffview';
 
 let viewDataLoaded = false;
 
+
+
 function setEditorTab(tab){
   document.querySelectorAll('.editor-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   ['shifts','viewschedules','report','addstaff'].forEach(t => {
     document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
   });
+  if (tab === 'shifts') renderPlanner();
+  if (tab === 'addstaff') renderStaffAdmin();
   if (tab === 'viewschedules'){
     renderViewWeekLabel();
     if (!viewDataLoaded){
@@ -2110,6 +2808,16 @@ function computeTotal(){
 function updateTotalPreview(){
   document.getElementById('dayTotalPreview').textContent = computeTotal() + 'h';
 }
+
+
+// New planner events
+const plannerPrevEl=document.getElementById('plannerWeekPrev'); if(plannerPrevEl) plannerPrevEl.onclick=()=>plannerChangeWeek(-1);
+const plannerNextEl=document.getElementById('plannerWeekNext'); if(plannerNextEl) plannerNextEl.onclick=()=>plannerChangeWeek(1);
+const plannerWeekEl=document.getElementById('plannerConfirmWeek'); if(plannerWeekEl) plannerWeekEl.onclick=publishPlannerWeek;
+const plannerFutureEl=document.getElementById('plannerConfirmFuture'); if(plannerFutureEl) plannerFutureEl.onclick=publishPlannerFuture;
+const staffToggleEl=document.getElementById('staffAddToggle'); if(staffToggleEl) staffToggleEl.onclick=()=>document.getElementById('staffAddPanel').classList.toggle('hidden');
+const staffAddSaveEl=document.getElementById('staffAddSave'); if(staffAddSaveEl) staffAddSaveEl.onclick=addStaffMemberInline;
+const staffAddCancelEl=document.getElementById('staffAddCancel'); if(staffAddCancelEl) staffAddCancelEl.onclick=()=>{document.getElementById('staffAddPanel').classList.add('hidden');document.getElementById('staffAddName').value='';document.getElementById('staffAddPin').value='';document.getElementById('staffAddStatus').textContent='';};
 
 // ---------- SAVE ----------
 function addShiftToPerson(person, dayIdx, shift){
