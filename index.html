@@ -296,6 +296,14 @@
     border-color:#3A5A34;
     color:var(--green);
   }
+  .shift-entry-btn.swap-btn{
+    display:block;
+    width:100%;
+    margin-top:8px;
+    background:none;
+    border:1px dashed var(--off-line);
+    color:var(--off);
+  }
   .reason-select{
     width:100%;
     background:var(--navy);
@@ -651,12 +659,13 @@ function toMinutes(hhmm){
 }
 
 function hoursFor(shift){
+  const sm = toMinutes(shift.start), em = toMinutes(shift.end);
+  if (sm !== null && em !== null) return (em - sm) / 60;
   if (shift.tag){
     const m = shift.tag.match(/[\d.]+/);
     return m ? parseFloat(m[0]) : 0;
   }
-  const sm = toMinutes(shift.start), em = toMinutes(shift.end);
-  return (sm !== null && em !== null) ? (em - sm) / 60 : 0;
+  return 0;
 }
 
 function varianceClass(scheduledHours, actualHours){
@@ -680,8 +689,25 @@ function weekKey(date){
   return `${y}-${m}-${d}`;
 }
 
+
+async function resolveBasePatternForWeek(mondayDate){
+  try{
+    const snap=await getDoc(doc(fbDb,'rota','pattern_versions'));
+    if(snap.exists() && Array.isArray(snap.data().versions)){
+      const key=weekKey(mondayDate);
+      const candidates=snap.data().versions.filter(v=>v&&v.effectiveFrom<=key&&v.json).sort((a,b)=>a.effectiveFrom.localeCompare(b.effectiveFrom));
+      if(candidates.length){
+        const parsed=JSON.parse(candidates[candidates.length-1].json);
+        STAFF.forEach(name=>{if(!parsed[name]) parsed[name]=blankWeek();});
+        return parsed;
+      }
+    }
+  }catch(e){console.warn('Could not load pattern version',e);}
+  return DEFAULT_DATA;
+}
+
 async function resolveWeekDataFor(mondayDate){
-  if (!firebaseReady) return DEFAULT_DATA;
+  if (!firebaseReady) return await resolveBasePatternForWeek(mondayDate);
   try {
     const snap = await getDoc(doc(fbDb, 'rota', `week_${weekKey(mondayDate)}`));
     if (snap.exists() && snap.data().json){
@@ -692,7 +718,7 @@ async function resolveWeekDataFor(mondayDate){
   } catch(e) {
     console.warn('Could not resolve a week, using default pattern', e);
   }
-  return DEFAULT_DATA;
+  return await resolveBasePatternForWeek(mondayDate);
 }
 
 async function loadStaffList(){
@@ -741,7 +767,7 @@ async function checkPin(){
     const match = Object.keys(pins).find(name => pins[name] === pinBuffer);
     if (match && STAFF.includes(match)){
       loggedInPerson = match;
-      try { localStorage.setItem('rota_logged_in_person', match); } catch(e) {}
+      try { localStorage.setItem('nt_rota_logged_in_person', match); } catch(e) {}
       statusEl.textContent = '';
       pinBuffer = '';
       updatePinDots();
@@ -771,7 +797,7 @@ document.querySelectorAll('.home-tab-btn').forEach(btn => {
 document.getElementById('switchUserBtn').onclick = () => {
   if (!confirm('Switch to a different user? You will need to enter a PIN again.')) return;
   loggedInPerson = null;
-  try { localStorage.removeItem('rota_logged_in_person'); } catch(e) {}
+  try { localStorage.removeItem('nt_rota_logged_in_person'); } catch(e) {}
   document.getElementById('homeScreen').classList.add('hidden');
   document.getElementById('loginScreen').classList.remove('hidden');
 };
@@ -876,7 +902,7 @@ async function renderMyShiftsWeek(){
         const s = day.shifts[si];
         const docId = `${loggedInPerson}_${dateStr}_${si}`;
         const existing = await fetchLoggedTime(docId);
-        const timeLabel = s.tag ? s.tag : `${s.start} – ${s.end}`;
+        const timeLabel = s.tag && String(s.tag).toLowerCase().includes('delivery') ? `09:00 – 13:00 (Delivery)` : (s.tag ? `${s.start !== '—' ? `${s.start} – ${s.end} ` : ''}(${s.tag})` : `${s.start} – ${s.end}`);
 
         let loggedHtml = '';
         if (existing){
@@ -887,6 +913,11 @@ async function renderMyShiftsWeek(){
           loggedHtml = `<div class="shift-entry-logged ${vCls}">Logged: ${existing.actualStart} – ${existing.actualEnd}</div>`;
         }
 
+        const isRotationShift = (idx === 6 && s.start === "13:30" && s.end === "22:00");
+        const swapBtnHtml = isRotationShift
+          ? `<button class="shift-entry-btn swap-btn" data-swap-date="${dateStr}" data-swap-doc="${docId}">Swap</button>`
+          : '';
+
         bodyHtml += `
           <div class="shift-entry">
             <div class="shift-entry-top">
@@ -896,7 +927,9 @@ async function renderMyShiftsWeek(){
               </button>
             </div>
             ${loggedHtml}
+            ${swapBtnHtml}
             <div class="log-panel hidden" id="panel-${docId}"></div>
+            ${isRotationShift ? `<div class="add-shift-panel hidden" id="swappanel-${docId}"></div>` : ''}
           </div>
         `;
       }
@@ -934,6 +967,62 @@ async function renderMyShiftsWeek(){
   el.querySelectorAll('.add-shift-btn').forEach(btn => {
     btn.onclick = () => toggleAddShiftPanel(btn.dataset.addDate);
   });
+  el.querySelectorAll('.swap-btn').forEach(btn => {
+    btn.onclick = () => toggleSwapPanel(btn.dataset.swapDoc, btn.dataset.swapDate);
+  });
+}
+
+async function toggleSwapPanel(docId, dateStr){
+  const panel = document.getElementById(`swappanel-${docId}`);
+  const isHidden = panel.classList.contains('hidden');
+  document.querySelectorAll('.log-panel, .add-shift-panel').forEach(p => p.classList.add('hidden'));
+  if (!isHidden) return;
+
+  const otherStaff = STAFF.filter(name => name !== loggedInPerson);
+  panel.innerHTML = `
+    <label>Who's covering this Sunday shift?</label>
+    <select class="reason-select swap-person-select">
+      <option value="">Select a person…</option>
+      ${otherStaff.map(name => `<option value="${name}">${name}</option>`).join('')}
+    </select>
+    <button class="big-btn swap-save-btn" style="margin-top:12px;">Confirm swap</button>
+    <div class="log-status"></div>
+  `;
+  panel.classList.remove('hidden');
+
+  panel.querySelector('.swap-save-btn').onclick = async () => {
+    const statusEl = panel.querySelector('.log-status');
+    const select = panel.querySelector('.swap-person-select');
+    if (!select.value){
+      statusEl.className = 'log-status err';
+      statusEl.textContent = 'Select who\'s covering.';
+      return;
+    }
+    const newPerson = select.value;
+    statusEl.className = 'log-status';
+    statusEl.textContent = 'Saving…';
+    try {
+      const mondayOfThisDate = mondayOf(new Date(dateStr + 'T00:00:00'));
+      const weekData = await resolveWeekDataFor(mondayOfThisDate);
+      STAFF.forEach(name => { if (!weekData[name]) weekData[name] = blankWeek(); });
+
+      weekData[loggedInPerson][6] = { off: true, total: 0 };
+      weekData[newPerson][6] = { shifts: [{ start: "13:30", end: "22:00", coveringFor: loggedInPerson }], total: 8.5 };
+
+      await setDoc(doc(fbDb, 'rota', `week_${weekKey(mondayOfThisDate)}`), { json: JSON.stringify(weekData) });
+
+      statusEl.className = 'log-status ok';
+      statusEl.textContent = 'Swapped.';
+      setTimeout(() => {
+        panel.classList.add('hidden');
+        renderMyShiftsWeek();
+        renderMonthView();
+      }, 700);
+    } catch(e) {
+      statusEl.className = 'log-status err';
+      statusEl.textContent = 'Save failed: ' + e.message;
+    }
+  };
 }
 
 async function fetchExtraShiftsForDate(person, dateStr){
@@ -952,7 +1041,10 @@ async function fetchExtraShiftsForDate(person, dateStr){
 }
 
 function shopHoursForDate(dateStr){
-  return { open: 5*60+30, close: 22*60, label: "22:00" };
+  const d = new Date(dateStr + 'T00:00:00');
+  const jsDay = d.getDay();
+  const isLateNight = (jsDay === 5 || jsDay === 6); // Friday and Saturday close later
+  return { open: 5*60+30, close: isLateNight ? 23*60 : 22*60, label: isLateNight ? "23:00" : "22:00" };
 }
 
 async function toggleAddShiftPanel(defaultDateStr){
@@ -1149,13 +1241,17 @@ async function toggleLogPanel(btn){
   const startVal = existing ? existing.actualStart : defStart;
   const endVal = existing ? existing.actualEnd : defEnd;
 
+  const panelDateObj = new Date(btn.dataset.date + 'T00:00:00');
+  const panelJsDay = panelDateObj.getDay();
+  const panelMaxTime = (panelJsDay === 5 || panelJsDay === 6) ? "23:00" : "22:00";
+
   panel.innerHTML = `
     <label class="not-worked-check"><input type="checkbox" class="not-worked-checkbox"> Didn't work this shift</label>
     <div class="time-fields">
       <label>Start time</label>
-      <div class="row"><input type="time" class="log-start-input" value="${startVal}" min="05:30" max="22:00"></div>
+      <div class="row"><input type="time" class="log-start-input" value="${startVal}" min="05:30" max="${panelMaxTime}"></div>
       <label>End time</label>
-      <div class="row"><input type="time" class="log-end-input" value="${endVal}" min="05:30" max="22:00"></div>
+      <div class="row"><input type="time" class="log-end-input" value="${endVal}" min="05:30" max="${panelMaxTime}"></div>
     </div>
     <div id="reasonArea-${docId}"></div>
     <button class="big-btn log-save-btn">Save</button>
@@ -1274,10 +1370,14 @@ async function toggleLogPanel(btn){
       return;
     }
 
-    const SHOP_OPEN = 5*60+30, SHOP_CLOSE = 22*60;
+    const shiftDateObj = new Date(btn.dataset.date + 'T00:00:00');
+    const shiftJsDay = shiftDateObj.getDay();
+    const isLateNight = (shiftJsDay === 5 || shiftJsDay === 6); // Friday or Saturday close later
+    const SHOP_OPEN = 5*60+30, SHOP_CLOSE = isLateNight ? 23*60 : 22*60;
+    const shopCloseLabel = isLateNight ? "23:00" : "22:00";
     const sm = toMinutes(actualStart), em = toMinutes(actualEnd);
     if (sm < SHOP_OPEN || sm > SHOP_CLOSE || em < SHOP_OPEN || em > SHOP_CLOSE){
-      if (!confirm(`This is outside shop hours (05:30–22:00). You entered ${actualStart}–${actualEnd}. Save anyway?`)) {
+      if (!confirm(`This is outside shop hours (05:30–${shopCloseLabel}). You entered ${actualStart}–${actualEnd}. Save anyway?`)) {
         statusEl.textContent = 'Not saved.';
         return;
       }
@@ -1473,7 +1573,7 @@ document.getElementById('monthNext').onclick = () => {
 (async () => {
   await loadStaffList();
   let saved = null;
-  try { saved = localStorage.getItem('rota_logged_in_person'); } catch(e) {}
+  try { saved = localStorage.getItem('nt_rota_logged_in_person'); } catch(e) {}
   if (saved && STAFF.includes(saved)){
     loggedInPerson = saved;
     showHome();
