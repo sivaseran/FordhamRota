@@ -1,6 +1,6 @@
 // Manage Fordham service worker.
 // Network-first/no asset cache: Firestore data must remain live.
-const CACHE_NAME = 'manage-fordham-v3';
+const CACHE_NAME = 'manage-fordham-v4';
 
 self.addEventListener('install', () => {
   // Wait so the manager can explicitly accept an available update.
