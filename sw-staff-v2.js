@@ -1,6 +1,6 @@
 // Shift Fordham staff service worker.
 // Network-first/no asset cache: Firestore data must remain live.
-const CACHE_NAME = 'shift-fordham-v3';
+const CACHE_NAME = 'shift-fordham-v4';
 
 self.addEventListener('install', () => {
   // Do not skip waiting automatically. The app shows
